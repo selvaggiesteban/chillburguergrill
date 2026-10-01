@@ -2,16 +2,75 @@
 import '../styles.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { getConfig } from '../lib/d1';
 
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
+  noindex?: boolean;
 }
 
 const {
   title = 'Chill Burguer Grill — Hamburguesas a la parrilla',
   description = 'Hamburguesas, combos y acompañamientos hechos a la parrilla. Pedí online con delivery, retiro en local, MercadoPago, transferencia o efectivo.',
+  image,
+  noindex = false,
 } = Astro.props;
+
+const site = Astro.site ?? new URL('https://chillburguergrill.com');
+const canonical = new URL(Astro.url.pathname, site).toString();
+const defaultOgImage = new URL('/images/og.png', site).toString();
+const imageIsRaster = !!image && !/\.svg$/i.test(image ?? '');
+const ogImage = imageIsRaster ? new URL(image!, site).toString() : defaultOgImage;
+
+type Contact = { phone?: string; whatsapp?: string; email?: string; address?: string; instagram?: string };
+type Hours = { mon_to_thu?: string; fri_sat?: string; sun?: string };
+
+let contact: Contact | null = null;
+let hours: Hours | null = null;
+try {
+  const db = Astro.locals.runtime.env.DB;
+  [contact, hours] = await Promise.all([getConfig<Contact>(db, 'contact'), getConfig<Hours>(db, 'hours')]);
+} catch {
+  /* la config es best-effort: no debe romper el render */
+}
+
+const parseRange = (value?: string): { opens: string; closes: string } | null => {
+  const match = value?.match(/^\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})\s*$/);
+  return match ? { opens: match[1], closes: match[2] } : null;
+};
+
+const DAYS: Record<string, string[]> = {
+  mon_to_thu: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+  fri_sat: ['Friday', 'Saturday'],
+  sun: ['Sunday'],
+};
+
+const openingHours = Object.entries(DAYS).flatMap(([key, days]) => {
+  const range = parseRange(hours?.[key as keyof Hours]);
+  if (!range) return [];
+  return days.map((day) => ({ '@type': 'OpeningHoursSpecification', dayOfWeek: day, opens: range.opens, closes: range.closes }));
+});
+
+const addressLine = contact?.address?.trim();
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Restaurant',
+  name: 'Chill Burguer Grill',
+  url: site.toString(),
+  image: defaultOgImage,
+  description,
+  servesCuisine: 'Hamburguesas',
+  priceRange: '$$',
+  ...(contact?.phone ? { telephone: contact.phone } : {}),
+  ...(addressLine ? { address: { '@type': 'PostalAddress', streetAddress: addressLine, addressLocality: 'Buenos Aires', addressCountry: 'AR' } } : {}),
+  ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
+  hasMenu: new URL('/menu', site).toString(),
+  acceptsReservations: false,
+};
+
+const robots = noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
 ---
 
 <!doctype html>
@@ -21,11 +80,28 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/images/og.png" />
+
+    <meta property="og:site_name" content="Chill Burguer Grill" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <title>{title}</title>
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body class="flex min-h-screen flex-col">
     <Header />
