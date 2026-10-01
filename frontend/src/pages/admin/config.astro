@@ -1,0 +1,12 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import ConfigEditor from '../../components/admin/ConfigEditor';
+---
+
+<AdminLayout title="Configuración — Chill Admin">
+  <div class="mb-5">
+    <h1 class="font-display text-3xl uppercase text-slate-900">Configuración</h1>
+    <p class="mt-1 text-sm text-slate-500">Contacto, horarios, delivery, cuenta bancaria y métodos de pago.</p>
+  </div>
+  <ConfigEditor client:load />
+</AdminLayout>

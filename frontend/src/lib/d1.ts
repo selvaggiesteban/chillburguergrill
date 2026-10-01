@@ -369,6 +369,21 @@ export async function listAllExtras(db: DB): Promise<Extra[]> {
   return results ?? [];
 }
 
+export type ExtraDetailed = Extra & { product_name: string | null };
+
+/** Todos los extras con el nombre de su producto (panel admin). */
+export async function listExtrasDetailed(db: DB): Promise<ExtraDetailed[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT e.*, p.name AS product_name
+       FROM extras e
+       LEFT JOIN products p ON p.id = e.product_id
+       ORDER BY e.product_id IS NULL DESC, e.orden ASC, e.id ASC`
+    )
+    .all<ExtraDetailed>();
+  return results ?? [];
+}
+
 export async function getExtrasByIds(db: DB, ids: number[]): Promise<Extra[]> {
   if (ids.length === 0) return [];
   const { results } = await db

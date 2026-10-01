@@ -1,0 +1,12 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import MenuManager from '../../components/admin/MenuManager';
+---
+
+<AdminLayout title="Carta — Chill Admin">
+  <div class="mb-5">
+    <h1 class="font-display text-3xl uppercase text-slate-900">Carta</h1>
+    <p class="mt-1 text-sm text-slate-500">Categorías, productos, agregados y promociones del menú.</p>
+  </div>
+  <MenuManager client:load />
+</AdminLayout>

@@ -1,28 +1,93 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getDashboardStats, listOrders } from '../../lib/d1';
+import { formatPrice } from '../../lib/utils';
 
-const user = Astro.locals.user;
+const db = Astro.locals.runtime.env.DB;
+const [stats, recent] = await Promise.all([
+  getDashboardStats(db),
+  listOrders(db, { limit: 10 }),
+]);
+
+const formatDate = (iso: string) => iso.replace('T', ' ').slice(0, 16);
+
+const STATUS_BADGES: Record<string, { label: string; cls: string }> = {
+  new: { label: 'Nuevo', cls: 'bg-blue-100 text-blue-700' },
+  confirmed: { label: 'Confirmado', cls: 'bg-indigo-100 text-indigo-700' },
+  preparing: { label: 'En preparación', cls: 'bg-amber-100 text-amber-700' },
+  ready: { label: 'Listo', cls: 'bg-purple-100 text-purple-700' },
+  on_the_way: { label: 'En camino', cls: 'bg-cyan-100 text-cyan-700' },
+  delivered: { label: 'Entregado', cls: 'bg-green-100 text-green-700' },
+  cancelled: { label: 'Cancelado', cls: 'bg-red-100 text-red-700' },
+};
 ---
 
-<BaseLayout title="Admin — Chill Burguer Grill">
-  <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-12">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="font-display text-4xl uppercase text-brand-600">Panel</h1>
-        <p class="text-sm text-ink-800/60">Conectado como {user?.email}</p>
-      </div>
-      <button id="logout" class="btn-secondary">Cerrar sesión</button>
+<AdminLayout title="Dashboard — Chill Admin">
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="font-display text-3xl uppercase text-slate-900">Dashboard</h1>
+    <a href="/admin/pedidos" class="text-sm font-semibold text-brand-600 hover:text-brand-700">Ver todos →</a>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm font-medium text-slate-500">Pedidos hoy</p>
+      <p class="mt-1 font-display text-3xl text-slate-900">{stats.ordersToday}</p>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm font-medium text-slate-500">Facturado hoy</p>
+      <p class="mt-1 font-display text-3xl text-brand-600">{formatPrice(stats.revenueToday)}</p>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm font-medium text-slate-500">Pendientes</p>
+      <p class="mt-1 font-display text-3xl text-slate-900">{stats.pendingOrders}</p>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+      <p class="text-sm font-medium text-slate-500">Pedidos totales</p>
+      <p class="mt-1 font-display text-3xl text-slate-900">{stats.ordersTotal}</p>
+    </div>
+  </div>
+
+  <div class="mt-8 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+      <h2 class="font-bold text-slate-900">Últimos pedidos</h2>
+      <a href="/admin/pedidos" class="text-sm font-semibold text-brand-600 hover:text-brand-700">Ver todos →</a>
     </div>
 
-    <div class="card mt-8 p-8 text-center text-ink-800/70">
-      El dashboard y la gestión de la carta se están construyendo.
-    </div>
-  </main>
-</BaseLayout>
-
-<script>
-  document.getElementById('logout')?.addEventListener('click', async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/admin/login';
-  });
-</script>
+    {
+      recent.rows.length === 0 ? (
+        <p class="p-8 text-center text-sm text-slate-500">Todavía no hay pedidos.</p>
+      ) : (
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <tr>
+              <th class="px-5 py-3">Fecha</th>
+              <th class="px-5 py-3">Cliente</th>
+              <th class="px-5 py-3">Entrega</th>
+              <th class="px-5 py-3">Total</th>
+              <th class="px-5 py-3">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {recent.rows.map((order) => (
+              <tr class="hover:bg-slate-50">
+                <td class="px-5 py-3 text-slate-500">{formatDate(order.created_at)}</td>
+                <td class="px-5 py-3">
+                  <a href={`/admin/pedidos/${order.id}`} class="font-semibold text-slate-800 hover:text-brand-600">
+                    {order.customer_name}
+                  </a>
+                </td>
+                <td class="px-5 py-3 text-slate-500">{order.fulfillment === 'delivery' ? 'Delivery' : 'Retiro'}</td>
+                <td class="px-5 py-3 font-semibold">{formatPrice(order.total)}</td>
+                <td class="px-5 py-3">
+                  <span class={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_BADGES[order.status]?.cls ?? 'bg-slate-100'}`}>
+                    {STATUS_BADGES[order.status]?.label ?? order.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    }
+  </div>
+</AdminLayout>
