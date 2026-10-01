@@ -18,3 +18,7 @@ dist/
 .DS_Store
 Thumbs.db
 npm-debug.log*
+
+# Cloudflare dev secrets
+.dev.vars
+.dev.vars.*

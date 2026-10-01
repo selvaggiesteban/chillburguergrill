@@ -9,8 +9,12 @@
  * El hash es SHA-256 (mismo esquema que auth.ts). La contraseña nunca
  * se escribe en el repo: solo vive en el comando que ejecutás.
  */
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const wranglerBin = join(dirname(fileURLToPath(import.meta.url)), '..', 'node_modules', 'wrangler', 'bin', 'wrangler.js');
 
 const args = process.argv.slice(2);
 const flag = args.find((a) => a.startsWith('--'));
@@ -21,15 +25,17 @@ if (!email || !password || (flag !== '--local' && flag !== '--remote')) {
   process.exit(1);
 }
 
-const hash = createHash('sha256').update(password).digest('hex');
+const salt = randomBytes(8).toString('hex');
+const hash = createHash('sha256').update(`${salt}.${password}`).digest('hex');
+const stored = `${salt}:${hash}`;
 const esc = (s) => s.replace(/'/g, "''");
 
-const sql = `INSERT INTO admins (email, password_hash) VALUES ('${esc(email)}', '${hash}') ON CONFLICT(email) DO UPDATE SET password_hash = excluded.password_hash;`;
+const sql = `INSERT INTO admins (email, password_hash) VALUES ('${esc(email)}', '${stored}') ON CONFLICT(email) DO UPDATE SET password_hash = excluded.password_hash;`;
 
 const result = spawnSync(
-  'npx',
-  ['wrangler', 'd1', 'execute', 'chill-menu', flag, '--command', sql],
-  { stdio: 'inherit', shell: true }
+  process.execPath,
+  [wranglerBin, 'd1', 'execute', 'chill-menu', flag, '--command', sql],
+  { stdio: 'inherit' }
 );
 
 process.exit(result.status ?? 1);

@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const user = Astro.locals.user;
+---
+
+<BaseLayout title="Admin — Chill Burguer Grill">
+  <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-12">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="font-display text-4xl uppercase text-brand-600">Panel</h1>
+        <p class="text-sm text-ink-800/60">Conectado como {user?.email}</p>
+      </div>
+      <button id="logout" class="btn-secondary">Cerrar sesión</button>
+    </div>
+
+    <div class="card mt-8 p-8 text-center text-ink-800/70">
+      El dashboard y la gestión de la carta se están construyendo.
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  document.getElementById('logout')?.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/admin/login';
+  });
+</script>

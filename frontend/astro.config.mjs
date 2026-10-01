@@ -7,10 +7,5 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare({ platformProxy: { enabled: true } }),
   integrations: [react(), tailwind({ applyBaseStyles: false })],
-  vite: {
-    resolve: {
-      alias: { 'react-dom/server': 'react-dom/server.edge' },
-    },
-  },
   site: 'https://chillburguergrill.com',
 });
