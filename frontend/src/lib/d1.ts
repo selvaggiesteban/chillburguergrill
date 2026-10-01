@@ -335,6 +335,16 @@ export async function getExistingProductIds(db: DB, ids: number[]): Promise<Set<
   return new Set((results ?? []).map((r: { id: number }) => r.id));
 }
 
+/** Productos por IDs (checkout: se valida todo server-side). */
+export async function getProductsByIds(db: DB, ids: number[]): Promise<Map<number, Product>> {
+  if (ids.length === 0) return new Map();
+  const { results } = await db
+    .prepare(`SELECT * FROM products WHERE id IN (${inClause(ids.length)})`)
+    .bind(...ids)
+    .all<Product>();
+  return new Map((results ?? []).map((p) => [p.id, p]));
+}
+
 // ============================================================
 // Extras
 // ============================================================
@@ -663,6 +673,13 @@ export async function getDashboardStats(db: DB): Promise<{
 // ============================================================
 // Configuración de la tienda
 // ============================================================
+
+export type DeliveryConfig = {
+  zones: { name: string; cost: number }[];
+  free_from: number;
+};
+
+export type BankConfig = { alias: string; cbu: string; titular: string };
 
 export async function getConfig<T>(db: DB, key: string): Promise<T | null> {
   const row = await db.prepare('SELECT config_value FROM store_config WHERE config_key = ?').bind(key).first<{ config_value: string }>();
