@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Contacto — Chill Burguer Grill"
+  description="Dirección, horarios y medios de contacto de Chill Burguer Grill."
+>
+  <div class="wrap py-12">
+    <header class="mb-8 text-center">
+      <h1 class="section-title">Contacto</h1>
+      <p class="mx-auto mt-2 max-w-xl text-ink-800/60">
+        Estamos todos los días de 18:00 a 23:30. ¡Escribinos o pasá por el local!
+      </p>
+    </header>
+
+    <div class="mx-auto grid max-w-3xl gap-5 sm:grid-cols-3">
+      <div class="card p-6 text-center">
+        <p class="mb-1 text-2xl">📍</p>
+        <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">Dirección</p>
+        <p class="mt-1 text-ink-800/70">Av. Siempreviva 742</p>
+      </div>
+      <div class="card p-6 text-center">
+        <p class="mb-1 text-2xl">🕐</p>
+        <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">Horario</p>
+        <p class="mt-1 text-ink-800/70">Mar a Dom · 18:00 a 23:30</p>
+      </div>
+      <div class="card p-6 text-center">
+        <p class="mb-1 text-2xl">💬</p>
+        <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">WhatsApp</p>
+        <p class="mt-1 text-ink-800/70">+54 9 11 5555-5555</p>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center">
+      <a href="/menu" class="btn-primary px-7 py-3">Hacer un pedido</a>
+    </div>
+  </div>
+</BaseLayout>

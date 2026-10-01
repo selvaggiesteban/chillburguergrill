@@ -1,4 +1,8 @@
 ---
+import '../styles.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
 interface Props {
   title?: string;
   description?: string;
@@ -23,7 +27,11 @@ const {
     <meta property="og:type" content="website" />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col">
-    <slot />
+  <body class="flex min-h-screen flex-col">
+    <Header />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
   </body>
 </html>

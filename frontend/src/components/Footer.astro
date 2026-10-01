@@ -1,0 +1,34 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-16 border-t border-ink-800/10 bg-white">
+  <div class="wrap grid gap-8 py-10 sm:grid-cols-3">
+    <div>
+      <p class="font-display text-2xl uppercase text-brand-600">Chill<span class="text-ink-800">Burger</span>Grill</p>
+      <p class="mt-2 max-w-xs text-sm text-ink-800/60">
+        Hamburguesas a la parrilla. Pedí online con delivery o retiro en local.
+      </p>
+    </div>
+
+    <div class="text-sm">
+      <p class="mb-2 font-bold uppercase tracking-wide text-ink-800/50">Encontranos</p>
+      <p class="text-ink-800/70">Av. Siempreviva 742</p>
+      <p class="text-ink-800/70">Mar a Dom · 18:00 a 23:30</p>
+      <p class="text-ink-800/70">+54 9 11 5555-5555</p>
+    </div>
+
+    <div class="text-sm">
+      <p class="mb-2 font-bold uppercase tracking-wide text-ink-800/50">Links</p>
+      <ul class="space-y-1.5">
+        <li><a href="/menu" class="text-ink-800/70 transition hover:text-brand-600">Carta</a></li>
+        <li><a href="/contacto" class="text-ink-800/70 transition hover:text-brand-600">Contacto</a></li>
+        <li><a href="/admin" class="text-ink-800/70 transition hover:text-brand-600">Panel</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-ink-800/10 py-4 text-center text-xs text-ink-800/40">
+    © {year} Chill Burguer Grill
+  </div>
+</footer>

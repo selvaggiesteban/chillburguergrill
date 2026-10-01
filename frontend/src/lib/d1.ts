@@ -406,6 +406,27 @@ export async function getComboItems(db: DB, comboId: number): Promise<ComboItem[
   return results ?? [];
 }
 
+export type ComboItemDetailed = ComboItem & {
+  product_name: string;
+  product_slug: string;
+  product_price: number;
+};
+
+/** Items de un combo con los datos del producto (para mostrar "qué incluye"). */
+export async function getComboItemsDetailed(db: DB, comboId: number): Promise<ComboItemDetailed[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT ci.*, p.name AS product_name, p.slug AS product_slug, p.price AS product_price
+       FROM combo_items ci
+       JOIN products p ON p.id = ci.product_id
+       WHERE ci.combo_id = ?
+       ORDER BY ci.id ASC`
+    )
+    .bind(comboId)
+    .all<ComboItemDetailed>();
+  return results ?? [];
+}
+
 export async function setComboItems(db: DB, comboId: number, items: { product_id: number; quantity: number }[]): Promise<void> {
   const statements = [db.prepare('DELETE FROM combo_items WHERE combo_id = ?').bind(comboId)];
   for (const item of items) {

@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { listCategories, listProducts, getActivePromotions } from '../../lib/d1';
+
+const db = Astro.locals.runtime.env.DB;
+const categories = await listCategories(db);
+const { rows: products } = await listProducts(db, { limit: 200 });
+const promos = await getActivePromotions(db, new Date().toISOString());
+
+const sections = categories
+  .map((category) => ({
+    category,
+    products: products.filter((p) => p.category_id === category.id),
+  }))
+  .filter((s) => s.products.length > 0);
+---
+
+<BaseLayout
+  title="Carta — Chill Burguer Grill"
+  description="Consultá nuestra carta: hamburguesas a la parrilla, combos, papas, bebidas y postres. Hacé tu pedido online."
+>
+  <div class="wrap py-10">
+    <header class="mb-8 text-center">
+      <h1 class="section-title">Nuestra carta</h1>
+      <p class="mx-auto mt-2 max-w-xl text-ink-800/60">
+        Todo se hace a la parrilla al momento. Elegí tus favoritos y armá tu pedido.
+      </p>
+    </header>
+
+    {
+      sections.length === 0 ? (
+        <div class="card p-10 text-center text-ink-800/60">La carta está en preparación. ¡Volvé pronto!</div>
+      ) : (
+        <>
+          <nav class="mb-10 flex snap-x gap-2 overflow-x-auto pb-2" aria-label="Categorías">
+            {sections.map(({ category }) => (
+              <a href={`#${category.slug}`} class="chip snap-start">
+                {category.name}
+              </a>
+            ))}
+          </nav>
+
+          <div class="space-y-14">
+            {sections.map(({ category, products: categoryProducts }) => (
+              <section id={category.slug} class="scroll-mt-24">
+                <div class="mb-5 flex items-baseline justify-between gap-4 border-b border-ink-800/10 pb-3">
+                  <h2 class="font-display text-2xl uppercase tracking-wide text-ink-800 sm:text-3xl">
+                    {category.name}
+                  </h2>
+                  {category.description && (
+                    <p class="hidden text-sm text-ink-800/50 sm:block">{category.description}</p>
+                  )}
+                </div>
+                <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {categoryProducts.map((product) => (
+                    <ProductCard product={product} promos={promos} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        </>
+      )
+    }
+  </div>
+</BaseLayout>

@@ -1,13 +1,72 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { listProducts, listCategories, getActivePromotions } from '../lib/d1';
+
+const db = Astro.locals.runtime.env.DB;
+const { rows: featured } = await listProducts(db, { destacadosOnly: true, limit: 6 });
+const categories = await listCategories(db);
+const promos = await getActivePromotions(db, new Date().toISOString());
 ---
 
 <BaseLayout>
-  <main class="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-    <h1 class="font-display text-5xl uppercase text-brand-600">Chill Burguer Grill</h1>
-    <p class="max-w-md text-lg text-ink-800/70">
-      Hamburguesas a la parrilla. La carta online está en construcción.
+  <section class="wrap py-14 text-center sm:py-20">
+    <p class="mb-3 text-sm font-bold uppercase tracking-[0.3em] text-brand-600">Hecho a la parrilla</p>
+    <h1 class="mx-auto max-w-3xl font-display text-5xl uppercase leading-none tracking-wide text-ink-800 sm:text-7xl">
+      Chill Burguer Grill
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-ink-800/60">
+      Hamburguesas, combos y acompañamientos al fuego. Pedí online con delivery o retiro en local.
     </p>
-    <a href="/menu" class="btn-primary">Ver la carta</a>
-  </main>
+    <div class="mt-7 flex flex-wrap justify-center gap-3">
+      <a href="/menu" class="btn-primary px-7 py-3">Ver la carta</a>
+      <a href="/contacto" class="btn-secondary px-7 py-3">Contactanos</a>
+    </div>
+  </section>
+
+  {
+    categories.length > 0 && (
+      <section class="wrap pb-12">
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {categories.map((category) => (
+            <a
+              href={`/menu#${category.slug}`}
+              class="card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div class="aspect-[4/3] overflow-hidden bg-brand-100">
+                <img
+                  src={`/images/menu/${category.slug}.svg`}
+                  alt=""
+                  loading="lazy"
+                  class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  onerror="this.src='/images/menu/default.svg'"
+                />
+              </div>
+              <p class="px-3 py-3 text-center font-display text-lg uppercase tracking-wide text-ink-800 group-hover:text-brand-600">
+                {category.name}
+              </p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    featured.length > 0 && (
+      <section class="wrap pb-16">
+        <div class="mb-5 flex items-baseline justify-between gap-4 border-b border-ink-800/10 pb-3">
+          <h2 class="section-title">Los más pedidos</h2>
+          <a href="/menu" class="text-sm font-semibold text-brand-600 transition hover:text-brand-700">
+            Ver todo →
+          </a>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {featured.map((product) => (
+            <ProductCard product={product} promos={promos} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 </BaseLayout>
