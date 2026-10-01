@@ -1,0 +1,21 @@
+{
+  "name": "chillburguergrill",
+  "pages_build_output_dir": "dist/",
+  "compatibility_date": "2026-06-14",
+  "compatibility_flags": ["nodejs_compat"],
+  // Reemplazar database_id por el real: npx wrangler d1 create chill-menu
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "chill-menu",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ],
+  // Reemplazar por el bucket real: npx wrangler r2 bucket create chillburguergrill-images
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "chillburguergrill-images"
+    }
+  ]
+}
