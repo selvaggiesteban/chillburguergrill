@@ -1,0 +1,4 @@
+# Copiar a .dev.vars (gitignored) para desarrollo local.
+# En producción van en Cloudflare Pages → Settings → Secrets.
+JWT_SECRET=dev-secret-chill-change-me
+MP_ACCESS_TOKEN=TEST-local-token
