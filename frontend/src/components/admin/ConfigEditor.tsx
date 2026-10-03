@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 
-type Contact = { phone: string; whatsapp: string; email: string; address: string; instagram: string };
-type Hours = { mon_to_thu: string; fri_sat: string; sun: string };
+type Contact = {
+  phone: string;
+  whatsapp: string;
+  email: string;
+  address: string;
+  address_url: string;
+  instagram: string;
+};
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+type DayKey = (typeof DAY_KEYS)[number];
+type DayHours = { closed: boolean; open: string; close: string };
+type Hours = { days: Record<DayKey, DayHours> };
 type Delivery = { zones: { name: string; cost: number }[]; free_from: number };
 type Bank = { alias: string; cbu: string; titular: string };
 type Payments = { mercadopago: boolean; transfer: boolean; cash: boolean };
@@ -14,13 +24,62 @@ type Config = {
   payments: Payments;
 };
 
+const DAY_LABELS: Record<DayKey, string> = {
+  mon: 'Lunes',
+  tue: 'Martes',
+  wed: 'Miércoles',
+  thu: 'Jueves',
+  fri: 'Viernes',
+  sat: 'Sábado',
+  sun: 'Domingo',
+};
+
+const DEFAULT_DAY: DayHours = { closed: false, open: '20:00', close: '23:50' };
+
+function daysMap(build: (key: DayKey) => DayHours): Record<DayKey, DayHours> {
+  const out = {} as Record<DayKey, DayHours>;
+  for (const key of DAY_KEYS) out[key] = build(key);
+  return out;
+}
+
 const EMPTY: Config = {
-  contact: { phone: '', whatsapp: '', email: '', address: '', instagram: '' },
-  hours: { mon_to_thu: '', fri_sat: '', sun: '' },
+  contact: { phone: '', whatsapp: '', email: '', address: '', address_url: '', instagram: '' },
+  hours: {
+    days: daysMap((key) => ({
+      ...DEFAULT_DAY,
+      closed: key === 'mon' || key === 'tue' || key === 'wed',
+    })),
+  },
   delivery: { zones: [], free_from: 0 },
   bank: { alias: '', cbu: '', titular: '' },
   payments: { mercadopago: true, transfer: true, cash: true },
 };
+
+/** Acepta el formato por día y el legado (rango por grupo de días). */
+function normalizeHours(raw: unknown): Hours {
+  const source = (raw ?? {}) as {
+    days?: Partial<Record<DayKey, Partial<DayHours>>>;
+    mon_to_thu?: string;
+    fri_sat?: string;
+    sun?: string;
+  };
+  const days = daysMap((key) =>
+    source.days?.[key] ? { ...DEFAULT_DAY, ...source.days[key] } : { ...DEFAULT_DAY, closed: true }
+  );
+
+  if (source.days) return { days };
+
+  const applyLegacy = (value: string | undefined, keys: DayKey[]) => {
+    const match = (value ?? '').trim().match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/);
+    for (const key of keys) {
+      days[key] = match ? { closed: false, open: match[1], close: match[2] } : { ...DEFAULT_DAY, closed: true };
+    }
+  };
+  applyLegacy(source.mon_to_thu, ['mon', 'tue', 'wed', 'thu']);
+  applyLegacy(source.fri_sat, ['fri', 'sat']);
+  applyLegacy(source.sun, ['sun']);
+  return { days };
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -44,7 +103,7 @@ export default function ConfigEditor() {
         const c = data.config ?? {};
         setConfig({
           contact: { ...EMPTY.contact, ...(c.contact ?? {}) },
-          hours: { ...EMPTY.hours, ...(c.hours ?? {}) },
+          hours: normalizeHours(c.hours),
           delivery: { ...EMPTY.delivery, ...(c.delivery ?? {}) },
           bank: { ...EMPTY.bank, ...(c.bank ?? {}) },
           payments: { ...EMPTY.payments, ...(c.payments ?? {}) },
@@ -105,6 +164,9 @@ export default function ConfigEditor() {
           <Field label="Dirección">
             <input className="input" value={config.contact.address} onChange={(e) => setConfig({ ...config, contact: { ...config.contact, address: e.target.value } })} />
           </Field>
+          <Field label="Link del mapa (Google Maps)">
+            <input className="input" placeholder="https://maps.app.goo.gl/…" value={config.contact.address_url} onChange={(e) => setConfig({ ...config, contact: { ...config.contact, address_url: e.target.value } })} />
+          </Field>
           <Field label="Instagram">
             <input className="input" value={config.contact.instagram} onChange={(e) => setConfig({ ...config, contact: { ...config.contact, instagram: e.target.value } })} />
           </Field>
@@ -116,16 +178,55 @@ export default function ConfigEditor() {
 
       <section className="card p-5">
         <h2 className="mb-4 font-display text-xl uppercase text-slate-800">Horarios</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Lun a Jue">
-            <input className="input" placeholder="18:00 - 23:30" value={config.hours.mon_to_thu} onChange={(e) => setConfig({ ...config, hours: { ...config.hours, mon_to_thu: e.target.value } })} />
-          </Field>
-          <Field label="Vie y Sáb">
-            <input className="input" placeholder="18:00 - 00:30" value={config.hours.fri_sat} onChange={(e) => setConfig({ ...config, hours: { ...config.hours, fri_sat: e.target.value } })} />
-          </Field>
-          <Field label="Domingo">
-            <input className="input" placeholder="18:00 - 23:00" value={config.hours.sun} onChange={(e) => setConfig({ ...config, hours: { ...config.hours, sun: e.target.value } })} />
-          </Field>
+        <div className="space-y-2">
+          {DAY_KEYS.map((key) => {
+            const day = config.hours.days[key];
+            return (
+              <div key={key} className="flex flex-wrap items-center gap-3">
+                <label className="flex w-40 items-center gap-2 text-sm font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={!day.closed}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        hours: {
+                          days: { ...config.hours.days, [key]: { ...day, closed: !e.target.checked } },
+                        },
+                      })
+                    }
+                  />
+                  {DAY_LABELS[key]}
+                </label>
+                <input
+                  type="time"
+                  className="input w-32"
+                  disabled={day.closed}
+                  value={day.open}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      hours: { days: { ...config.hours.days, [key]: { ...day, open: e.target.value } } },
+                    })
+                  }
+                />
+                <span className="text-sm text-slate-400">a</span>
+                <input
+                  type="time"
+                  className="input w-32"
+                  disabled={day.closed}
+                  value={day.close}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      hours: { days: { ...config.hours.days, [key]: { ...day, close: e.target.value } } },
+                    })
+                  }
+                />
+                {day.closed && <span className="text-sm font-medium text-slate-400">Cerrado</span>}
+              </div>
+            );
+          })}
         </div>
         <button type="button" disabled={savingKey === 'hours'} onClick={() => void save('hours')} className="btn-primary mt-4 px-4 py-2 text-sm">
           {savingKey === 'hours' ? 'Guardando…' : 'Guardar horarios'}

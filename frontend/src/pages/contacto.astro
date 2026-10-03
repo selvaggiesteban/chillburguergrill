@@ -1,35 +1,94 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadPublicConfig, formatSchedule } from '../lib/public-config';
+
+const { contact, hours } = await loadPublicConfig(Astro.locals);
+const schedule = formatSchedule(hours);
+
+const whatsapp = contact?.whatsapp?.trim() ?? '';
+const whatsappDigits = whatsapp.replace(/\D/g, '');
+const whatsappHref = whatsappDigits
+  ? `https://wa.me/${whatsappDigits.startsWith('54') ? whatsappDigits : `54${whatsappDigits}`}`
+  : null;
+
+const instagramHandle = contact?.instagram?.trim().replace(/^@/, '') ?? '';
+const instagramHref = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;
+const address = contact?.address?.trim() ?? '';
+const addressHref = contact?.address_url?.trim() || null;
+const email = contact?.email?.trim() ?? '';
 ---
 
 <BaseLayout
   title="Contacto — Chill Burguer Grill"
-  description="Dirección, horarios y medios de contacto de Chill Burguer Grill."
+  description="Dirección, horarios y medios de contacto de Chill Burguer Grill: WhatsApp, Instagram y cómo llegar al local."
 >
   <div class="wrap py-12">
     <header class="mb-8 text-center">
       <h1 class="section-title">Contacto</h1>
       <p class="mx-auto mt-2 max-w-xl text-ink-800/60">
-        Estamos todos los días de 18:00 a 23:30. ¡Escribinos o pasá por el local!
+        {schedule}. ¡Escribinos o pasá por el local!
       </p>
     </header>
 
-    <div class="mx-auto grid max-w-3xl gap-5 sm:grid-cols-3">
+    <div class="mx-auto grid max-w-4xl gap-5 sm:grid-cols-3">
       <div class="card p-6 text-center">
         <p class="mb-1 text-2xl">📍</p>
         <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">Dirección</p>
-        <p class="mt-1 text-ink-800/70">Av. Siempreviva 742</p>
+        {
+          addressHref ? (
+            <a href={addressHref} target="_blank" rel="noopener noreferrer" class="mt-1 block text-ink-800/70 transition hover:text-brand-600">
+              {address}
+            </a>
+          ) : (
+            <p class="mt-1 text-ink-800/70">{address || '—'}</p>
+          )
+        }
       </div>
+
       <div class="card p-6 text-center">
         <p class="mb-1 text-2xl">🕐</p>
         <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">Horario</p>
-        <p class="mt-1 text-ink-800/70">Mar a Dom · 18:00 a 23:30</p>
+        <p class="mt-1 text-ink-800/70">{schedule}</p>
       </div>
+
       <div class="card p-6 text-center">
         <p class="mb-1 text-2xl">💬</p>
         <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">WhatsApp</p>
-        <p class="mt-1 text-ink-800/70">+54 9 11 5555-5555</p>
+        {
+          whatsappHref ? (
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" class="mt-1 block text-ink-800/70 transition hover:text-brand-600">
+              {whatsapp}
+            </a>
+          ) : (
+            <p class="mt-1 text-ink-800/70">{whatsapp || '—'}</p>
+          )
+        }
       </div>
+    </div>
+
+    <div class="mx-auto mt-5 grid max-w-4xl gap-5 sm:grid-cols-2">
+      {
+        instagramHref && (
+          <div class="card p-6 text-center">
+            <p class="mb-1 text-2xl">📸</p>
+            <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">Instagram</p>
+            <a href={instagramHref} target="_blank" rel="noopener noreferrer" class="mt-1 block text-ink-800/70 transition hover:text-brand-600">
+              @{instagramHandle}
+            </a>
+          </div>
+        )
+      }
+      {
+        email && (
+          <div class="card p-6 text-center">
+            <p class="mb-1 text-2xl">✉️</p>
+            <p class="text-sm font-bold uppercase tracking-wide text-ink-800/50">Email</p>
+            <a href={`mailto:${email}`} class="mt-1 block text-ink-800/70 transition hover:text-brand-600">
+              {email}
+            </a>
+          </div>
+        )
+      }
     </div>
 
     <div class="mt-8 text-center">

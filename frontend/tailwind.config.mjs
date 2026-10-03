@@ -4,19 +4,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Design tokens provisionales — se reemplazan con los colores institucionales (Fase 7)
+        // Institucional: violeta (capucha de la mascota) + dorado (emblema).
         brand: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
+          50: '#faf6ff',
+          100: '#f3e9ff',
+          200: '#e7d5ff',
+          300: '#d5b5ff',
+          400: '#be8fff',
+          500: '#a45cff',
+          600: '#8b2fe6',
+          700: '#7421c4',
+          800: '#601da3',
+          900: '#4e1a84',
         },
+        gold: {
+          300: '#ffd76a',
+          400: '#ffc431',
+          500: '#f0b010',
+          600: '#d19406',
+          700: '#a97705',
+        },
+        paper: '#fbf8f4',
         ink: {
           800: '#1c1917',
           900: '#0c0a09',

@@ -7,7 +7,7 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-brand-50 text-ink-800 antialiased;
+    @apply bg-paper text-ink-800 antialiased;
   }
 }
 

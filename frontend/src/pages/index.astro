@@ -19,7 +19,7 @@ const [{ rows: featured }, categories, promos] = await Promise.all([
       Chill Burguer Grill
     </h1>
     <p class="mx-auto mt-4 max-w-xl text-lg text-ink-800/60">
-      Hamburguesas, combos y acompañamientos al fuego. Pedí online con delivery o retiro en local.
+      Hamburguesas smash, guarniciones y bebidas. Pedí online con delivery o retiro en local.
     </p>
     <div class="mt-7 flex flex-wrap justify-center gap-3">
       <a href="/menu" class="btn-primary px-7 py-3">Ver la carta</a>
@@ -30,27 +30,27 @@ const [{ rows: featured }, categories, promos] = await Promise.all([
   {
     categories.length > 0 && (
       <section class="wrap pb-12">
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {categories.map((category) => (
-            <a
-              href={`/menu#${category.slug}`}
-              class="card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <div class="aspect-[4/3] overflow-hidden bg-brand-100">
-                <img
-                  src={`/images/menu/${category.slug}.svg`}
-                  alt=""
-                  loading="lazy"
-                  class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  onerror="this.src='/images/menu/default.svg'"
-                />
-              </div>
-              <p class="px-3 py-3 text-center font-display text-lg uppercase tracking-wide text-ink-800 group-hover:text-brand-600">
-                {category.name}
-              </p>
-            </a>
-          ))}
-        </div>
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {categories.map((category) => (
+              <a
+                href={`/menu#${category.slug}`}
+                class="card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div class="aspect-[4/3] overflow-hidden bg-brand-100">
+                  <img
+                    src={`/images/menu/categories/${category.slug}.webp`}
+                    alt=""
+                    loading="lazy"
+                    class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    onerror={`this.dataset.fb ? (this.onerror=null, this.src='/images/menu/default.svg') : (this.dataset.fb=1, this.src='/images/menu/${category.slug}.svg')`}
+                  />
+                </div>
+                <p class="px-3 py-3 text-center font-display text-lg uppercase tracking-wide text-ink-800 group-hover:text-brand-600">
+                  {category.name}
+                </p>
+              </a>
+            ))}
+          </div>
       </section>
     )
   }

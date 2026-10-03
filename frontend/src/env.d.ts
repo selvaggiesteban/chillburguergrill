@@ -6,6 +6,8 @@ type Runtime = import('@astrojs/cloudflare').Runtime<Env>;
 declare namespace App {
   interface Locals extends Runtime {
     user: { id: string; email: string; isAdmin: boolean } | null;
+    /** Config pública (contacto/horarios) memoizada por request. */
+    publicConfig?: import('./lib/public-config').PublicConfig;
   }
 }
 

@@ -2,7 +2,7 @@
 import '../styles.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { getConfigs } from '../lib/d1';
+import { loadPublicConfig, jsonLdOpeningHours } from '../lib/public-config';
 
 interface Props {
   title?: string;
@@ -12,8 +12,8 @@ interface Props {
 }
 
 const {
-  title = 'Chill Burguer Grill — Hamburguesas a la parrilla',
-  description = 'Hamburguesas, combos y acompañamientos hechos a la parrilla. Pedí online con delivery, retiro en local, MercadoPago, transferencia o efectivo.',
+  title = 'Chill Burguer Grill — Hamburguesas smash a la parrilla',
+  description = 'Hamburguesas smash, guarniciones y bebidas. Pedí online con delivery en Lanús y alrededores o retiro en local: MercadoPago, transferencia o efectivo.',
   image,
   noindex = false,
 } = Astro.props;
@@ -24,40 +24,12 @@ const defaultOgImage = new URL('/images/og.png', site).toString();
 const imageIsRaster = !!image && !/\.svg$/i.test(image ?? '');
 const ogImage = imageIsRaster ? new URL(image!, site).toString() : defaultOgImage;
 
-type Contact = { phone?: string; whatsapp?: string; email?: string; address?: string; instagram?: string };
-type Hours = { mon_to_thu?: string; fri_sat?: string; sun?: string };
+// 1 sola query D1 por request, compartida con Footer/página (ver lib/public-config).
+const { contact, hours } = await loadPublicConfig(Astro.locals);
 
-let contact: Contact | null = null;
-let hours: Hours | null = null;
-try {
-  const db = Astro.locals.runtime.env.DB;
-  // Una sola query para ambas claves: 1 subrequest D1 en vez de 2
-  // (se ejecuta en cada render de página pública que no sale de cache edge).
-  const cfg = await getConfigs<{ contact: Contact; hours: Hours }>(db, ['contact', 'hours']);
-  contact = cfg.contact ?? null;
-  hours = cfg.hours ?? null;
-} catch {
-  /* la config es best-effort: no debe romper el render */
-}
-
-const parseRange = (value?: string): { opens: string; closes: string } | null => {
-  const match = value?.match(/^\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})\s*$/);
-  return match ? { opens: match[1], closes: match[2] } : null;
-};
-
-const DAYS: Record<string, string[]> = {
-  mon_to_thu: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
-  fri_sat: ['Friday', 'Saturday'],
-  sun: ['Sunday'],
-};
-
-const openingHours = Object.entries(DAYS).flatMap(([key, days]) => {
-  const range = parseRange(hours?.[key as keyof Hours]);
-  if (!range) return [];
-  return days.map((day) => ({ '@type': 'OpeningHoursSpecification', dayOfWeek: day, opens: range.opens, closes: range.closes }));
-});
-
+const openingHours = jsonLdOpeningHours(hours);
 const addressLine = contact?.address?.trim();
+const telephone = contact?.whatsapp || contact?.phone;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Restaurant',
@@ -67,7 +39,8 @@ const jsonLd = {
   description,
   servesCuisine: 'Hamburguesas',
   priceRange: '$$',
-  ...(contact?.phone ? { telephone: contact.phone } : {}),
+  ...(telephone ? { telephone } : {}),
+  ...(contact?.email ? { email: contact.email } : {}),
   ...(addressLine ? { address: { '@type': 'PostalAddress', streetAddress: addressLine, addressLocality: 'Buenos Aires', addressCountry: 'AR' } } : {}),
   ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
   hasMenu: new URL('/menu', site).toString(),
@@ -86,8 +59,9 @@ const robots = noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview
     <meta name="description" content={description} />
     <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/images/og.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:site_name" content="Chill Burguer Grill" />
     <meta property="og:locale" content="es_AR" />
@@ -112,6 +86,6 @@ const robots = noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview
     <main class="flex-1">
       <slot />
     </main>
-    <Footer />
+    <Footer contact={contact} hours={hours} />
   </body>
 </html>

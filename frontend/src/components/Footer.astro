@@ -1,21 +1,68 @@
 ---
+import { formatSchedule, type ContactConfig, type HoursConfig } from '../lib/public-config';
+
+interface Props {
+  contact: ContactConfig | null;
+  hours: HoursConfig | null;
+}
+
+const { contact, hours } = Astro.props;
 const year = new Date().getFullYear();
+
+const whatsapp = contact?.whatsapp?.trim() ?? '';
+const whatsappDigits = whatsapp.replace(/\D/g, '');
+const whatsappHref = whatsappDigits
+  ? `https://wa.me/${whatsappDigits.startsWith('54') ? whatsappDigits : `54${whatsappDigits}`}`
+  : null;
+
+const instagramHandle = contact?.instagram?.trim().replace(/^@/, '') ?? '';
+const instagramHref = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;
+const address = contact?.address?.trim() ?? '';
+const addressHref = contact?.address_url?.trim() || null;
+const email = contact?.email?.trim() ?? '';
+const schedule = formatSchedule(hours);
 ---
 
 <footer class="mt-16 border-t border-ink-800/10 bg-white">
   <div class="wrap grid gap-8 py-10 sm:grid-cols-3">
     <div>
-      <p class="font-display text-2xl uppercase text-brand-600">Chill<span class="text-ink-800">Burger</span>Grill</p>
+      <img src="/images/logo.webp" alt="Chill Burguer Grill" width="512" height="512" class="h-20 w-auto" />
+      <p class="mt-3 font-display text-2xl uppercase text-brand-600">
+        Chill<span class="text-ink-800">Burger</span>Grill
+      </p>
       <p class="mt-2 max-w-xs text-sm text-ink-800/60">
-        Hamburguesas a la parrilla. Pedí online con delivery o retiro en local.
+        Hamburguesas smash, guarniciones y bebidas. Pedí online con delivery o retiro en local.
       </p>
     </div>
 
     <div class="text-sm">
       <p class="mb-2 font-bold uppercase tracking-wide text-ink-800/50">Encontranos</p>
-      <p class="text-ink-800/70">Av. Siempreviva 742</p>
-      <p class="text-ink-800/70">Mar a Dom · 18:00 a 23:30</p>
-      <p class="text-ink-800/70">+54 9 11 5555-5555</p>
+      {
+        address &&
+          (addressHref ? (
+            <a href={addressHref} target="_blank" rel="noopener noreferrer" class="block text-ink-800/70 transition hover:text-brand-600">
+              {address}
+            </a>
+          ) : (
+            <p class="text-ink-800/70">{address}</p>
+          ))
+      }
+      <p class="mt-1 text-ink-800/70">{schedule}</p>
+      {whatsappHref && (
+        <a href={whatsappHref} target="_blank" rel="noopener noreferrer" class="mt-1 block text-ink-800/70 transition hover:text-brand-600">
+          WhatsApp {whatsapp}
+        </a>
+      )}
+      {instagramHref && (
+        <a href={instagramHref} target="_blank" rel="noopener noreferrer" class="mt-1 block text-ink-800/70 transition hover:text-brand-600">
+          @{instagramHandle}
+        </a>
+      )}
+      {email && (
+        <a href={`mailto:${email}`} class="mt-1 block text-ink-800/70 transition hover:text-brand-600">
+          {email}
+        </a>
+      )}
     </div>
 
     <div class="text-sm">
