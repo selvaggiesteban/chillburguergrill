@@ -10,6 +10,7 @@ import {
   getActivePromotions,
   bestPromoFor,
   listProducts,
+  type ComboItemDetailed,
 } from '../../lib/d1';
 import { formatPrice, parseImages, coverOf } from '../../lib/utils';
 
@@ -21,10 +22,15 @@ if (!product) {
   return Astro.rewrite('/404');
 }
 
-const [category, extras, promos] = await Promise.all([
+// Todo en paralelo: 5 subrequests D1 concurrentes en vez de 3 tandas.
+const [category, extras, promos, comboItems, relatedResult] = await Promise.all([
   getCategoryById(db, product.category_id),
   listExtrasForProduct(db, product.id),
   getActivePromotions(db, new Date().toISOString()),
+  product.type === 'combo'
+    ? getComboItemsDetailed(db, product.id)
+    : Promise.resolve<ComboItemDetailed[]>([]),
+  listProducts(db, { categoryId: product.category_id, limit: 6 }),
 ]);
 
 const promo = bestPromoFor(promos, product.id, product.category_id, product.price);
@@ -34,13 +40,7 @@ const images = parseImages(product.images);
 const image = coverOf(images, product.cover_index);
 const soldOut = product.disponible === 0;
 
-const comboItems =
-  product.type === 'combo' ? await getComboItemsDetailed(db, product.id) : [];
-
-const relatedRows = (
-  await listProducts(db, { categoryId: product.category_id, limit: 6 })
-).rows;
-const related = relatedRows.filter((p) => p.id !== product.id).slice(0, 3);
+const related = relatedResult.rows.filter((p) => p.id !== product.id).slice(0, 3);
 
 const cartProduct = {
   productId: product.id,

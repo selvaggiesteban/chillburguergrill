@@ -13,6 +13,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     includeHidden: true,
     categoryId,
     limit: 300,
+    withTotal: true,
   });
   return json({ products: rows, total });
 };

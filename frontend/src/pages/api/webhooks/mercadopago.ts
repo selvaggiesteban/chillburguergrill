@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { errorJson, json } from '../../../lib/api';
-import { updateOrderPayment } from '../../../lib/d1';
+import { getOrderById, updateOrderPayment } from '../../../lib/d1';
 import { getMpPayment, isMockMpToken, verifyMpSignature } from '../../../lib/mp';
 
 /**
@@ -37,13 +37,22 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   try {
     const payment = await getMpPayment(token, dataId);
-    if (payment.orderId) {
-      await updateOrderPayment(env.DB, payment.orderId, {
-        payment_status: payment.status,
-        mp_payment_id: payment.paymentId,
-      });
-      console.log(`[webhook] order=${payment.orderId} payment=${payment.paymentId} status=${payment.status}`);
+    if (!payment.orderId) return json({ ok: true, ignored: true, reason: 'no_order_ref' });
+
+    // Diff guard: MercadoPago reenvía el mismo IPN varias veces. Si el estado
+    // no cambió, se responde OK sin escribir (row writes = 100k/día, la cuota
+    // más escasa de D1; una lectura extra sale de la de 5M/día).
+    const current = await getOrderById(env.DB, payment.orderId);
+    if (!current) return json({ ok: true, ignored: true, reason: 'order_not_found' });
+    if (current.payment_status === payment.status && current.mp_payment_id === payment.paymentId) {
+      return json({ ok: true, unchanged: true });
     }
+
+    await updateOrderPayment(env.DB, payment.orderId, {
+      payment_status: payment.status,
+      mp_payment_id: payment.paymentId,
+    });
+    console.log(`[webhook] order=${payment.orderId} payment=${payment.paymentId} status=${payment.status}`);
     return json({ ok: true });
   } catch (e) {
     console.error('[webhook] error:', e);

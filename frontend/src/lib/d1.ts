@@ -211,6 +211,13 @@ export type ListProductsOptions = {
   type?: 'simple' | 'combo';
   limit?: number;
   offset?: number;
+  /**
+   * `COUNT(*) OVER()` obliga a SQLite a materializar TODAS las filas que
+   * cumplen el WHERE (aunque haya LIMIT) + un temp B-tree para ordenar.
+   * Solo pedirlo cuando el paginado admin necesita el total: en la carta
+   * pública se evita leer filas de más.
+   */
+  withTotal?: boolean;
 };
 
 export async function listProducts(db: DB, opts?: ListProductsOptions): Promise<{ rows: ProductRow[]; total: number }> {
@@ -236,10 +243,11 @@ export async function listProducts(db: DB, opts?: ListProductsOptions): Promise<
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
   const limit = Math.min(opts?.limit ?? 100, 500);
   const offset = opts?.offset ?? 0;
+  const totalExpr = opts?.withTotal ? ', COUNT(*) OVER() AS total_count' : '';
 
   const { results } = await db
     .prepare(
-      `SELECT *, COUNT(*) OVER() AS total_count
+      `SELECT *${totalExpr}
        FROM products ${where}
        ORDER BY orden ASC, id ASC
        LIMIT ? OFFSET ?`
@@ -602,18 +610,18 @@ export async function listOrders(
   const limit = Math.min(opts?.limit ?? 50, 200);
   const offset = opts?.offset ?? 0;
 
-  const { results } = await db
-    .prepare(
-      `SELECT *, COUNT(*) OVER() AS total_count
-       FROM orders ${where}
-       ORDER BY created_at DESC
-       LIMIT ? OFFSET ?`
-    )
-    .bind(...binds, limit, offset)
-    .all<Order & { total_count?: number }>();
+  // Dos sentencias en UN batch (1 subrequest): las filas usan el índice de
+  // orden (LIMIT corto) y el total se resuelve con un COUNT de índice
+  // cubriendo solo columnas, en vez de materializar todas las órdenes con
+  // COUNT(*) OVER().
+  const [rowsRes, countRes] = await db.batch([
+    db.prepare(`SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`).bind(...binds, limit, offset),
+    db.prepare(`SELECT COUNT(*) AS n FROM orders ${where}`).bind(...binds),
+  ]);
 
-  const rows = results ?? [];
-  return { rows, total: rows[0]?.total_count ?? rows.length };
+  const rows = (rowsRes?.results ?? []) as (Order & { total_count?: number })[];
+  const total = (countRes?.results as { n: number }[] | undefined)?.[0]?.n ?? rows.length;
+  return { rows, total };
 }
 
 export async function getOrderById(db: DB, id: string): Promise<Order | null> {
@@ -659,29 +667,32 @@ export async function setTransferProof(db: DB, id: string, key: string): Promise
     .run();
 }
 
-/** KPIs del dashboard: un solo barrido por tabla. */
+/** KPIs del dashboard: una sola query (1 subrequest) con índices cubriendo. */
 export async function getDashboardStats(db: DB): Promise<{
   ordersToday: number;
   pendingOrders: number;
   revenueToday: number;
   ordersTotal: number;
 }> {
-  const today = await db
+  // date(created_at) = date('now') no es sargable: obligaba a escanear toda
+  // la tabla. Con created_at >= datetime('now','start of day') usa
+  // idx_orders_created (covering).
+  const row = await db
     .prepare(
-      `SELECT COUNT(*) AS n, COALESCE(SUM(CASE WHEN status != 'cancelled' THEN total ELSE 0 END), 0) AS revenue
-       FROM orders WHERE date(created_at) = date('now')`
+      `SELECT
+         (SELECT COUNT(*) FROM orders WHERE created_at >= datetime('now', 'start of day')) AS orders_today,
+         (SELECT COALESCE(SUM(total), 0) FROM orders
+           WHERE created_at >= datetime('now', 'start of day') AND status != 'cancelled') AS revenue_today,
+         (SELECT COUNT(*) FROM orders WHERE status IN ('new', 'confirmed', 'preparing')) AS pending,
+         (SELECT COUNT(*) FROM orders) AS total`
     )
-    .first<{ n: number; revenue: number }>();
-  const pending = await db
-    .prepare(`SELECT COUNT(*) AS n FROM orders WHERE status IN ('new', 'confirmed', 'preparing')`)
-    .first<{ n: number }>();
-  const total = await db.prepare(`SELECT COUNT(*) AS n FROM orders`).first<{ n: number }>();
+    .first<{ orders_today: number; revenue_today: number; pending: number; total: number }>();
 
   return {
-    ordersToday: today?.n ?? 0,
-    pendingOrders: pending?.n ?? 0,
-    revenueToday: today?.revenue ?? 0,
-    ordersTotal: total?.n ?? 0,
+    ordersToday: row?.orders_today ?? 0,
+    pendingOrders: row?.pending ?? 0,
+    revenueToday: row?.revenue_today ?? 0,
+    ordersTotal: row?.total ?? 0,
   };
 }
 
@@ -704,6 +715,27 @@ export async function getConfig<T>(db: DB, key: string): Promise<T | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Varias claves en UNA sola query (1 subrequest D1 en vez de N).
+ * Cada `.prepare()` aparte consume un subrequest de la invocación.
+ */
+export async function getConfigs<T extends Record<string, unknown>>(db: DB, keys: string[]): Promise<Partial<T>> {
+  const out: Record<string, unknown> = {};
+  if (keys.length === 0) return out as Partial<T>;
+  const { results } = await db
+    .prepare(`SELECT config_key, config_value FROM store_config WHERE config_key IN (${inClause(keys.length)})`)
+    .bind(...keys)
+    .all<{ config_key: string; config_value: string }>();
+  for (const row of results ?? []) {
+    try {
+      out[row.config_key] = JSON.parse(row.config_value);
+    } catch {
+      out[row.config_key] = null;
+    }
+  }
+  return out as Partial<T>;
 }
 
 export async function getAllConfig(db: DB): Promise<Record<string, unknown>> {

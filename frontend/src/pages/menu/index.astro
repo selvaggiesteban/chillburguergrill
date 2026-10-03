@@ -4,9 +4,12 @@ import ProductCard from '../../components/ProductCard.astro';
 import { listCategories, listProducts, getActivePromotions } from '../../lib/d1';
 
 const db = Astro.locals.runtime.env.DB;
-const categories = await listCategories(db);
-const { rows: products } = await listProducts(db, { limit: 200 });
-const promos = await getActivePromotions(db, new Date().toISOString());
+// En paralelo: 3 subrequests D1 concurrentes en vez de 3 ida y vuelta.
+const [categories, { rows: products }, promos] = await Promise.all([
+  listCategories(db),
+  listProducts(db, { limit: 200 }),
+  getActivePromotions(db, new Date().toISOString()),
+]);
 
 const sections = categories
   .map((category) => ({

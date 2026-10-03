@@ -2,7 +2,7 @@
 import '../styles.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { getConfig } from '../lib/d1';
+import { getConfigs } from '../lib/d1';
 
 interface Props {
   title?: string;
@@ -31,7 +31,11 @@ let contact: Contact | null = null;
 let hours: Hours | null = null;
 try {
   const db = Astro.locals.runtime.env.DB;
-  [contact, hours] = await Promise.all([getConfig<Contact>(db, 'contact'), getConfig<Hours>(db, 'hours')]);
+  // Una sola query para ambas claves: 1 subrequest D1 en vez de 2
+  // (se ejecuta en cada render de página pública que no sale de cache edge).
+  const cfg = await getConfigs<{ contact: Contact; hours: Hours }>(db, ['contact', 'hours']);
+  contact = cfg.contact ?? null;
+  hours = cfg.hours ?? null;
 } catch {
   /* la config es best-effort: no debe romper el render */
 }
