@@ -1,84 +1,93 @@
-# 🍔 Chill Burguer Grill - Technical Documentation
+# 🍔 Chill Burguer Grill - Full Technical Specification
 
-## 🚀 Project Status & Feature Matrix
-*Ready for Trello import*
+## 🚀 Feature Matrix & Implementation Status
+*Copy-paste ready for Trello/Jira*
 
-### 🛠️ Core Infrastructure
-- [✅] **Hosting**: Cloudflare Pages (Server-side Rendering)
-- [✅] **Database**: Cloudflare D1 (SQL)
-- [✅] **Object Storage**: Cloudflare R2 (Image Optimization)
-- [✅] **Session Management**: Cloudflare KV
-- [✅] **CI/CD**: GitHub Actions $\rightarrow$ Wrangler $\rightarrow$ CF Pages
-- [✅] **Environment**: Node.js 22 LTS
+### 🏗️ Core Infrastructure & Deployment
+- [✅] **Hosting**: Cloudflare Pages (Edge Computing / SSR)
+- [✅] **Database**: Cloudflare D1 (Distributed SQL)
+- [✅] **Object Storage**: Cloudflare R2 (S3-Compatible for Optimized Assets)
+- [✅] **Session Store**: Cloudflare KV (Low-latency Key-Value)
+- [✅] **CI/CD Pipeline**: GitHub Actions $\rightarrow$ `wrangler-action` $\rightarrow$ CF Pages
+- [✅] **Deployment Optimization**: 
+    - [✅] Edge Caching via Cache API
+    - [✅] `X-Cache` header implementation
+    - [✅] D1 Query Optimization (Minimized round-trips)
+    - [✅] Asset optimization for R2 delivery
+- [✅] **Runtime**: Node.js 22 LTS
 
-### 🎨 UI/UX & Frontend
-- [✅] **Framework**: Astro v5 (output: 'server')
-- [✅] **Component Library**: React 19 (Islands Architecture)
-- [✅] **Styling**: Tailwind CSS v3
-- [✅] **Mobile-First Design**: Responsive layout for mobile ordering
+### 🎨 Frontend & UI/UX (Mobile-First)
+- [✅] **Framework**: Astro v5 (Island Architecture / Server Output)
+- [✅] **UI Logic**: React 19 (Islands)
+- [✅] **Styling**: Tailwind CSS v3 (Utility-first)
 - [✅] **Hero Carousel**: Native Astro + Slick Carousel (Fixed Hydration Gap)
-- [✅] **Urgency Timer**: Custom JS implementation (#F2AB27)
-- [✅] **Navigation**: Large Category Cards + Mobile Menu
+- [✅] **Urgency Timer**: Dynamic JS Implementation (#F2AB27)
+- [✅] **Navigation**: Large Category Cards + Mobile-Responsive Menu
+- [✅] **Assets**: Optimized SVG/WebP pipeline
 
-### 🛒 E-commerce Logic
-- [✅] **Digital Menu**: Dynamic loading from D1
-- [✅] **Shopping Cart**: Client-side state with server-side validation
-- [✅] **Pricing Engine**: Server-side calculation to prevent client-side tampering
-- [✅] **Payment Methods**: 
-  - MercadoPago (API Preferences & Webhooks)
-  - Direct Bank Transfer (10% Discount)
-  - Cash on Delivery (10% Discount)
-- [✅] **Checkout**: Server-side totals validation via `checkout.ts`
+### 🛒 E-commerce & Business Logic
+- [✅] **Digital Menu**: Dynamic D1-driven catalog
+- [✅] **Shopping Cart**: Client-side state with Server-side validation
+- [✅] **Pricing Engine**: Secure server-side totals calculation (`checkout.ts`)
+- [✅] **Payment Gateway**: 
+    - [✅] MercadoPago API (Preferences & Webhooks)
+    - [✅] Direct Transfer (10% Discount Logic)
+    - [✅] Cash on Delivery (10% Discount Logic)
+- [✅] **Checkout Flow**: Validated order submission and payment initiation
 
-### 🛡️ Admin & Backend
-- [✅] **Admin Panel**: Protected routes via `middleware.ts`
-- [✅] **Route Guards**: Edge-level authentication checks
-- [✅] **Edge Caching**: Implementation of Cache API with `X-Cache` headers
-- [✅] **Image Pipeline**: R2 Bucket integration for high-res asset delivery
+### 🛡️ Administration & Security
+- [✅] **Admin Panel**: Dedicated management interface
+- [✅] **Route Guards**: `middleware.ts` Edge-level authentication
+- [✅] **API Security**: Webhook signature validation (MercadoPago)
+- [✅] **Access Control**: Restricted admin routes via CF Workers middleware
 
 ---
 
-## 📐 Technical Specifications
+## 📐 Technical Architecture
 
-### 🗺️ Navigation Map & Routes
-| Route | Method | Description | Access |
-| :--- | :--- | :--- | :--- |
-| `/` | GET | Landing Page / Home | Public |
-| `/menu` | GET | Digital Menu (Categories/Products) | Public |
-| `/menu#category` | GET | Filtered category view | Public |
-| `/checkout` | POST | Order processing & payment initiation | Public |
-| `/admin/*` | GET/POST| Store management & order tracking | Admin |
-| `/api/webhook/mp`| POST | MercadoPago payment notification | System |
+### 🗺️ Navigation Map & Routing
+| Route | Method | Purpose | Access | Protocol |
+| :--- | :--- | :--- | :--- | :--- |
+| `/` | GET | Home / Hero Landing | Public | HTTPS |
+| `/menu` | GET | Digital Menu / Catalog | Public | HTTPS |
+| `/menu#category`| GET | Category-specific filter | Public | HTTPS |
+| `/checkout` | POST | Order Validation & Payment | Public | HTTPS |
+| `/admin/*` | GET/POST| Store & Order Management | Admin | HTTPS/Auth |
+| `/api/webhook/mp`| POST | MercadoPago Notification | System | HTTPS |
 
-### 🗄️ Data & Connectivity
+### 🗄️ Data Connectivity & Protocols
 - **Database (D1)**:
-  - **Migrations**: SQL-based schema versioning via `wrangler d1 migrations`.
-  - **Protocol**: HTTPS / Cloudflare Tunnel.
-  - **Connectivity**: D1 Binding $\rightarrow$ `Astro.locals.runtime.env.DB`.
+  - **Protocol**: Cloudflare D1 API / SQL.
+  - **Migrations**: Managed via `wrangler d1 migrations`.
+  - **Connectivity**: `Astro.locals.runtime.env.DB` binding.
 - **Storage (R2)**:
   - **Protocol**: S3-Compatible API.
-  - **Binding**: `IMAGES` binding for direct access.
-- **KV**:
-  - **Purpose**: Session persistence and temporary configuration.
+  - **Connectivity**: `IMAGES` binding for direct asset streaming.
+- **Sessions (KV)**:
+  - **Protocol**: KV REST API.
+  - **Connectivity**: `SESSION` binding for edge-state persistence.
 
-### 🌐 SEO & Web Standards
+### 🌐 SEO, Meta & Web Standards
 - **Canonical URL**: `https://chillburguergrill.com`
-- **Sitemap**: `/sitemap-index.xml` (Generated via `@astrojs/sitemap`)
-- **Meta Tags (Open Graph)**:
+- **Sitemap**: `/sitemap-index.xml` (Auto-generated via `@astrojs/sitemap`)
+- **Open Graph (OG)**:
   - `og:site_name`: Chill Burguer Grill
   - `og:type`: website
   - `og:image`: `/images/og.png`
   - `og:locale`: es_AR
-- **Robots.txt**: 
+- **SEO Strategy**: 
+  - JSON-LD (Restaurant Schema) for Google Rich Snippets.
+  - Semantic HTML5 tags.
+  - Dynamic Meta descriptions per product category.
+- **Robots.txt**:
   - `User-agent: *` $\rightarrow$ `Allow: /`
   - `Sitemap: https://chillburguergrill.com/sitemap-index.xml`
-- **SEO Strategy**: Semantic HTML5, JSON-LD (Restaurant Schema), and dynamic meta tags per page.
 
-### 📦 Versioning & Development
+### 📦 Development Specifications
 - **Version**: 1.0.0-beta
 - **Languages**: TypeScript 5.x, JavaScript (ESNext), HTML5, CSS3
 - **Author**: Esteban Selvaggi
-- **Deployment Protocol**: GitHub Actions $\rightarrow$ `wrangler-action` $\rightarrow$ Cloudflare Pages Production.
+- **Deployment**: GitHub Actions $\rightarrow$ `wrangler` $\rightarrow$ Cloudflare Pages Production.
 
 ---
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
