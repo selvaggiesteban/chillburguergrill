@@ -1,93 +1,56 @@
-# 🍔 Chill Burguer Grill - Full Technical Specification
+# 🍔 Chill Burguer Grill - Technical Specification
 
-## 🚀 Feature Matrix & Implementation Status
-*Copy-paste ready for Trello/Jira*
+## 🚀 Feature Matrix
+- [✅] Hosting: Cloudflare Pages (Edge SSR)
+- [✅] Database: Cloudflare D1 (Distributed SQL)
+- [✅] Object Storage: Cloudflare R2 (S3 Compatible)
+- [✅] Session Management: Cloudflare KV
+- [✅] CI/CD: GitHub Actions $\rightarrow$ Wrangler $\rightarrow$ CF Pages
+- [✅] Deployment Optimization: Edge Caching (Cache API), X-Cache Headers, D1 Query Tuning
+- [✅] Framework: Astro v5 (Server Output)
+- [✅] UI Library: React 19 (Islands Architecture)
+- [✅] Styling: Tailwind CSS v3
+- [✅] Mobile-First Layout: Responsive Design
+- [✅] Hero Carousel: Native Astro + Slick Carousel (Fixed Hydration)
+- [✅] Urgency Timer: Custom JS (#F2AB27)
+- [✅] Digital Menu: Dynamic D1 Catalog
+- [✅] Shopping Cart: Validated Server-side state
+- [✅] Pricing Engine: Secure calculation in `checkout.ts`
+- [✅] Payment Gateway: MercadoPago API (Preferences & Webhooks)
+- [✅] Payment Methods: Direct Transfer (10% discount), Cash (10% discount)
+- [✅] Admin Panel: Management interface
+- [✅] Security: `middleware.ts` Route Guards & Webhook validation
+- [✅] SEO: JSON-LD Restaurant Schema, Open Graph, robots.txt, sitemap.xml
 
-### 🏗️ Core Infrastructure & Deployment
-- [✅] **Hosting**: Cloudflare Pages (Edge Computing / SSR)
-- [✅] **Database**: Cloudflare D1 (Distributed SQL)
-- [✅] **Object Storage**: Cloudflare R2 (S3-Compatible for Optimized Assets)
-- [✅] **Session Store**: Cloudflare KV (Low-latency Key-Value)
-- [✅] **CI/CD Pipeline**: GitHub Actions $\rightarrow$ `wrangler-action` $\rightarrow$ CF Pages
-- [✅] **Deployment Optimization**: 
-    - [✅] Edge Caching via Cache API
-    - [✅] `X-Cache` header implementation
-    - [✅] D1 Query Optimization (Minimized round-trips)
-    - [✅] Asset optimization for R2 delivery
-- [✅] **Runtime**: Node.js 22 LTS
+## 📐 Technical Details
 
-### 🎨 Frontend & UI/UX (Mobile-First)
-- [✅] **Framework**: Astro v5 (Island Architecture / Server Output)
-- [✅] **UI Logic**: React 19 (Islands)
-- [✅] **Styling**: Tailwind CSS v3 (Utility-first)
-- [✅] **Hero Carousel**: Native Astro + Slick Carousel (Fixed Hydration Gap)
-- [✅] **Urgency Timer**: Dynamic JS Implementation (#F2AB27)
-- [✅] **Navigation**: Large Category Cards + Mobile-Responsive Menu
-- [✅] **Assets**: Optimized SVG/WebP pipeline
+### 🗺️ Navigation & Routing
+- **Home (`/`)**: GET | Public | HTTPS
+- **Menu (`/menu`)**: GET | Public | HTTPS
+- **Category Filter (`/menu#category`)**: GET | Public | HTTPS
+- **Checkout (`/checkout`)**: POST | Public | HTTPS
+- **Admin Dashboard (`/admin/*`)**: GET/POST | Admin | HTTPS/Auth
+- **MP Webhook (`/api/webhook/mp`)**: POST | System | HTTPS
 
-### 🛒 E-commerce & Business Logic
-- [✅] **Digital Menu**: Dynamic D1-driven catalog
-- [✅] **Shopping Cart**: Client-side state with Server-side validation
-- [✅] **Pricing Engine**: Secure server-side totals calculation (`checkout.ts`)
-- [✅] **Payment Gateway**: 
-    - [✅] MercadoPago API (Preferences & Webhooks)
-    - [✅] Direct Transfer (10% Discount Logic)
-    - [✅] Cash on Delivery (10% Discount Logic)
-- [✅] **Checkout Flow**: Validated order submission and payment initiation
+### 🗄️ Infrastructure & Connectivity
+- **Database (D1)**: SQL Protocol | Migrations via `wrangler d1 migrations` | Binding: `Astro.locals.runtime.env.DB`
+- **Storage (R2)**: S3 API | Binding: `IMAGES`
+- **KV**: REST API | Binding: `SESSION`
+- **Connectivity**: Cloudflare Edge Network $\rightarrow$ D1/R2/KV via internal bindings
 
-### 🛡️ Administration & Security
-- [✅] **Admin Panel**: Dedicated management interface
-- [✅] **Route Guards**: `middleware.ts` Edge-level authentication
-- [✅] **API Security**: Webhook signature validation (MercadoPago)
-- [✅] **Access Control**: Restricted admin routes via CF Workers middleware
-
----
-
-## 📐 Technical Architecture
-
-### 🗺️ Navigation Map & Routing
-| Route | Method | Purpose | Access | Protocol |
-| :--- | :--- | :--- | :--- | :--- |
-| `/` | GET | Home / Hero Landing | Public | HTTPS |
-| `/menu` | GET | Digital Menu / Catalog | Public | HTTPS |
-| `/menu#category`| GET | Category-specific filter | Public | HTTPS |
-| `/checkout` | POST | Order Validation & Payment | Public | HTTPS |
-| `/admin/*` | GET/POST| Store & Order Management | Admin | HTTPS/Auth |
-| `/api/webhook/mp`| POST | MercadoPago Notification | System | HTTPS |
-
-### 🗄️ Data Connectivity & Protocols
-- **Database (D1)**:
-  - **Protocol**: Cloudflare D1 API / SQL.
-  - **Migrations**: Managed via `wrangler d1 migrations`.
-  - **Connectivity**: `Astro.locals.runtime.env.DB` binding.
-- **Storage (R2)**:
-  - **Protocol**: S3-Compatible API.
-  - **Connectivity**: `IMAGES` binding for direct asset streaming.
-- **Sessions (KV)**:
-  - **Protocol**: KV REST API.
-  - **Connectivity**: `SESSION` binding for edge-state persistence.
-
-### 🌐 SEO, Meta & Web Standards
+### 🌐 SEO & Web Standards
 - **Canonical URL**: `https://chillburguergrill.com`
-- **Sitemap**: `/sitemap-index.xml` (Auto-generated via `@astrojs/sitemap`)
-- **Open Graph (OG)**:
-  - `og:site_name`: Chill Burguer Grill
-  - `og:type`: website
-  - `og:image`: `/images/og.png`
-  - `og:locale`: es_AR
-- **SEO Strategy**: 
-  - JSON-LD (Restaurant Schema) for Google Rich Snippets.
-  - Semantic HTML5 tags.
-  - Dynamic Meta descriptions per product category.
-- **Robots.txt**:
-  - `User-agent: *` $\rightarrow$ `Allow: /`
-  - `Sitemap: https://chillburguergrill.com/sitemap-index.xml`
+- **Sitemap**: `/sitemap-index.xml`
+- **Open Graph**: `og:site_name` (Chill Burguer Grill), `og:type` (website), `og:image` (/images/og.png), `og:locale` (es_AR)
+- **Robots.txt**: User-agent: * Allow: / | Sitemap: https://chillburguergrill.com/sitemap-index.xml
+- **SEO**: Semantic HTML5, Dynamic Meta-tags per category, JSON-LD Schema.
 
-### 📦 Development Specifications
+### 📦 Development & Versioning
 - **Version**: 1.0.0-beta
 - **Languages**: TypeScript 5.x, JavaScript (ESNext), HTML5, CSS3
 - **Author**: Esteban Selvaggi
-- **Deployment**: GitHub Actions $\rightarrow$ `wrangler` $\rightarrow$ Cloudflare Pages Production.
+- **Requirements**: Node.js 22 LTS, Wrangler CLI
+- **Deployment**: GitHub Actions $\rightarrow$ `wrangler-action` $\rightarrow$ CF Pages Production
 
 ---
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
