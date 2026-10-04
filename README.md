@@ -6,7 +6,7 @@
 - [✅] Object Storage: Cloudflare R2 (S3 Compatible)
 - [✅] Session Management: Cloudflare KV
 - [✅] CI/CD: GitHub Actions $\rightarrow$ Wrangler $\rightarrow$ CF Pages
-- [✅] Deployment Optimization: Edge Caching (Cache API), X-Cache Headers, D1 Query Tuning
+- [✅] Deployment Optimization: Edge Caching (Cache API), X-Cache Headers, D1 Query Tuning, R2 Asset Stream
 - [✅] Framework: Astro v5 (Server Output)
 - [✅] UI Library: React 19 (Islands Architecture)
 - [✅] Styling: Tailwind CSS v3
@@ -21,6 +21,7 @@
 - [✅] Admin Panel: Management interface
 - [✅] Security: `middleware.ts` Route Guards & Webhook validation
 - [✅] SEO: JSON-LD Restaurant Schema, Open Graph, robots.txt, sitemap.xml
+- [✅] Deployment Admin: wrangler.jsonc configuration, Cloudflare Secret management
 
 ## 📐 Technical Details
 
@@ -37,10 +38,11 @@
 - **Storage (R2)**: S3 API | Binding: `IMAGES`
 - **KV**: REST API | Binding: `SESSION`
 - **Connectivity**: Cloudflare Edge Network $\rightarrow$ D1/R2/KV via internal bindings
+- **Requirements**: Node.js 22 LTS, Wrangler CLI, Cloudflare Account
 
 ### 🌐 SEO & Web Standards
-- **Canonical URL**: `https://chillburguergrill.pages.dev`
-- **Sitemap**: `/sitemap-index.xml`
+- **Canonical URL**: `https://chillburguergrill.pages.dev/`
+- **Sitemap**: `https://chillburguergrill.pages.dev/sitemap-index.xml`
 - **Open Graph**: `og:site_name` (Chill Burguer Grill), `og:type` (website), `og:image` (/images/og.png), `og:locale` (es_AR)
 - **Robots.txt**: User-agent: * Allow: / | Sitemap: https://chillburguergrill.pages.dev/sitemap-index.xml
 - **SEO**: Semantic HTML5, Dynamic Meta-tags per category, JSON-LD Schema.
@@ -49,7 +51,6 @@
 - **Version**: 1.0.0-beta
 - **Languages**: TypeScript 5.x, JavaScript (ESNext), HTML5, CSS3
 - **Author**: Esteban Selvaggi
-- **Requirements**: Node.js 22 LTS, Wrangler CLI
 - **Deployment**: GitHub Actions $\rightarrow$ `wrangler-action` $\rightarrow$ CF Pages Production
 
 ---
