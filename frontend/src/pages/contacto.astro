@@ -1,15 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { loadPublicConfig, formatSchedule } from '../lib/public-config';
+import { loadPublicConfig, formatSchedule, whatsappLink } from '../lib/public-config';
 
 const { contact, hours } = await loadPublicConfig(Astro.locals);
 const schedule = formatSchedule(hours);
 
 const whatsapp = contact?.whatsapp?.trim() ?? '';
-const whatsappDigits = whatsapp.replace(/\D/g, '');
-const whatsappHref = whatsappDigits
-  ? `https://wa.me/${whatsappDigits.startsWith('54') ? whatsappDigits : `54${whatsappDigits}`}`
-  : null;
+const whatsappHref = whatsappLink(contact?.whatsapp);
 
 const instagramHandle = contact?.instagram?.trim().replace(/^@/, '') ?? '';
 const instagramHref = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;

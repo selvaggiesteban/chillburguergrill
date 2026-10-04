@@ -2,7 +2,7 @@
 import '../styles.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { loadPublicConfig, jsonLdOpeningHours } from '../lib/public-config';
+import { loadPublicConfig, jsonLdOpeningHours, whatsappE164 } from '../lib/public-config';
 
 interface Props {
   title?: string;
@@ -29,7 +29,7 @@ const { contact, hours } = await loadPublicConfig(Astro.locals);
 
 const openingHours = jsonLdOpeningHours(hours);
 const addressLine = contact?.address?.trim();
-const telephone = contact?.whatsapp || contact?.phone;
+const telephone = whatsappE164(contact?.whatsapp) ?? contact?.phone;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Restaurant',

@@ -55,6 +55,22 @@ const LEGACY_GROUPS: Record<string, DayKey[]> = {
   sun: ['sun'],
 };
 
+/** "+5491171548466": normaliza un WhatsApp argentino (nacional o ya internacional). */
+export function whatsappE164(raw?: string | null): string | null {
+  let digits = (raw ?? '').replace(/\D/g, '');
+  if (!digits) return null;
+  if (digits.startsWith('549')) digits = digits.slice(3);
+  else if (digits.startsWith('54')) digits = digits.slice(2);
+  if (digits.startsWith('9')) digits = digits.slice(1);
+  return `+549${digits}`;
+}
+
+/** https://wa.me/5491171548466 */
+export function whatsappLink(raw?: string | null): string | null {
+  const e164 = whatsappE164(raw);
+  return e164 ? `https://wa.me/${e164.slice(1)}` : null;
+}
+
 export async function loadPublicConfig(locals: App.Locals): Promise<PublicConfig> {
   if (locals.publicConfig) return locals.publicConfig;
 

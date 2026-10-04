@@ -1,5 +1,5 @@
 ---
-import { formatSchedule, type ContactConfig, type HoursConfig } from '../lib/public-config';
+import { formatSchedule, whatsappLink, type ContactConfig, type HoursConfig } from '../lib/public-config';
 
 interface Props {
   contact: ContactConfig | null;
@@ -10,10 +10,7 @@ const { contact, hours } = Astro.props;
 const year = new Date().getFullYear();
 
 const whatsapp = contact?.whatsapp?.trim() ?? '';
-const whatsappDigits = whatsapp.replace(/\D/g, '');
-const whatsappHref = whatsappDigits
-  ? `https://wa.me/${whatsappDigits.startsWith('54') ? whatsappDigits : `54${whatsappDigits}`}`
-  : null;
+const whatsappHref = whatsappLink(contact?.whatsapp);
 
 const instagramHandle = contact?.instagram?.trim().replace(/^@/, '') ?? '';
 const instagramHref = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;
