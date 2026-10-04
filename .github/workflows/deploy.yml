@@ -23,13 +23,13 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install Dependencies
-        run: npm ci --verbose
+        run: npm install --legacy-peer-deps
 
       - name: Typecheck
         run: npx tsc --noEmit || (echo "Typecheck failed" && exit 1)
 
       - name: Build
-        run: npm run build --verbose || (echo "Build failed" && exit 1)
+        run: npm run build || (echo "Build failed" && exit 1)
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
