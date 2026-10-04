@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProductCard from '../components/ProductCard.astro';
+import HeroCarousel from '../components/home/HeroCarousel';
 import { listProducts, listCategories, getActivePromotions } from '../lib/d1';
 
 const db = Astro.locals.runtime.env.DB;
@@ -13,8 +14,10 @@ const [{ rows: featured }, categories, promos] = await Promise.all([
 ---
 
 <BaseLayout>
-  <section class="wrap py-14 text-center sm:py-20">
-    <p class="mb-3 text-sm font-bold uppercase tracking-[0.3em] text-brand-600">Hecho a la parrilla</p>
+  <HeroCarousel client:load />
+
+  <section class="wrap py-16 text-center sm:py-24">
+    <p class="mb-3 text-sm font-bold uppercase tracking-[0.3em] text-brand-600">La mejor experiencia smash</p>
     <h1 class="mx-auto max-w-3xl font-display text-5xl uppercase leading-none tracking-wide text-ink-800 sm:text-7xl">
       Chill Burguer Grill
     </h1>
@@ -30,22 +33,25 @@ const [{ rows: featured }, categories, promos] = await Promise.all([
   {
     categories.length > 0 && (
       <section class="wrap pb-12">
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
             {categories.map((category) => (
               <a
                 href={`/menu#${category.slug}`}
-                class="card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
+                class="card group relative overflow-hidden transition hover:-translate-y-1 hover:shadow-xl"
               >
-                <div class="aspect-[4/3] overflow-hidden bg-brand-100">
+                <div class="aspect-[4/3] overflow-hidden bg-brand-50">
                   <img
                     src={`/images/menu/categories/${category.slug}.webp`}
                     alt=""
                     loading="lazy"
-                    class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    class="h-full w-full object-cover transition duration-500 group-hover:scale-110"
                     onerror={`this.dataset.fb ? (this.onerror=null, this.src='/images/menu/default.svg') : (this.dataset.fb=1, this.src='/images/menu/${category.slug}.svg')`}
                   />
                 </div>
-                <p class="px-3 py-3 text-center font-display text-lg uppercase tracking-wide text-ink-800 group-hover:text-brand-600">
+                <div class="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                   <span class="mb-4 rounded-full bg-brand-600 px-4 py-1 text-xs font-bold text-white uppercase">Explorar</span>
+                </div>
+                <p class="px-4 py-4 text-center font-display text-xl uppercase tracking-wide text-ink-800 group-hover:text-brand-600">
                   {category.name}
                 </p>
               </a>

@@ -170,6 +170,17 @@ export async function priceCheckout(
     if (freeFrom > 0 && subtotal >= freeFrom) deliveryCost = 0;
   }
 
+  // ------------------------------------------------------------
+  // Pagos y Descuentos por Método
+  // ------------------------------------------------------------
+  let finalTotal = subtotal + deliveryCost;
+  let discountAmount = 0;
+
+  if (payload.paymentMethod === "transfer" || payload.paymentMethod === "cash") {
+    discountAmount = subtotal * 0.10; // 10% off sobre el subtotal de productos
+    finalTotal -= discountAmount;
+  }
+
   return {
     order: {
       customer_name: name,
@@ -180,7 +191,7 @@ export async function priceCheckout(
       zone,
       delivery_cost: deliveryCost,
       subtotal,
-      total: subtotal + deliveryCost,
+      total: finalTotal,
       payment_method: payload.paymentMethod,
       notes,
     },
