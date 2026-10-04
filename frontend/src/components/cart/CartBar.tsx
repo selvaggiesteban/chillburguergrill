@@ -48,12 +48,12 @@ export default function CartBar() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="relative rounded-xl p-2 text-ink-800 transition hover:bg-ink-800/5"
+        className="relative rounded-xl p-2 text-white transition hover:bg-white/15"
         aria-label={`Abrir carrito (${count} productos)`}
       >
         <CartIcon />
         {mounted && count > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-brand-600 px-1 text-xs font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gold-500 px-1 text-xs font-bold text-ink-900">
             {count}
           </span>
         )}

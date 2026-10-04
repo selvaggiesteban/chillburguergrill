@@ -2,19 +2,17 @@
 import CartBar from './cart/CartBar';
 ---
 
-<header class="sticky top-0 z-40 border-b border-ink-800/10 bg-white/90 backdrop-blur">
+<header class="sticky top-0 z-40 bg-[#4123C0] text-white">
   <div class="wrap flex h-16 items-center justify-between gap-4">
     <a href="/" class="flex shrink-0 items-center" aria-label="Chill Burguer Grill — Inicio">
       <img src="/images/logo.webp" alt="Chill Burguer Grill" width="512" height="512" class="h-12 w-auto" />
     </a>
 
-    <nav class="hidden items-center gap-1 sm:flex" aria-label="Principal">
-      <a href="/menu" class="rounded-lg px-4 py-2 font-semibold text-ink-800/70 transition hover:bg-ink-800/5 hover:text-ink-800">Carta</a>
-      <a href="/contacto" class="rounded-lg px-4 py-2 font-semibold text-ink-800/70 transition hover:bg-ink-800/5 hover:text-ink-800">Contacto</a>
+    <nav class="flex items-center gap-1" aria-label="Principal">
+      <a href="/contacto" class="rounded-lg px-4 py-2 font-semibold text-white transition hover:bg-white/15">Contacto</a>
     </nav>
 
     <div class="flex items-center gap-1">
-      <a href="/menu" class="btn-ghost px-3 py-2 text-sm sm:hidden">Carta</a>
       <CartBar client:load />
     </div>
   </div>
