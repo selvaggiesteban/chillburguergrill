@@ -113,3 +113,4 @@ node scripts/create-admin.mjs --remote admin@dominio.com "contraseña"
 
 - Los secretos (`MP_ACCESS_TOKEN`, `JWT_SECRET`) van en Cloudflare Pages → Settings → Secrets, nunca en el repo.
 - `.dev.vars` (gitignored) lleva los valores de desarrollo local.
+🚀 Despliegue final verificado - Sun Oct  4 17:14:45 UTC 2026
