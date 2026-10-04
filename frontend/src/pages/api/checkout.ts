@@ -61,7 +61,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           unitPrice: item.unit_price,
         })),
       });
-      mpReference = preference.initPoint;
+      mpReference = preference.preferenceId;
       redirect = preference.initPoint;
     } catch (e) {
       console.error('[checkout] MercadoPago preference error:', e);

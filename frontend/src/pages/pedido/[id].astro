@@ -45,8 +45,7 @@ const needsProof = order.payment_method === 'transfer' && !hasProof && order.pay
 const canPayMp =
   order.payment_method === 'mercadopago' &&
   order.payment_status !== 'paid' &&
-  !!order.mp_preference_id &&
-  order.mp_preference_id.startsWith('http');
+  !!order.mp_preference_id;
 ---
 
 <BaseLayout title={`Pedido ${shortId} — Chill Burguer Grill`} noindex>
