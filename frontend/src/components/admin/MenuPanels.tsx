@@ -501,7 +501,7 @@ export function ProductsPanel({
                 <tr key={product.id} className="hover:bg-slate-50">
                   <td className="px-4 py-2.5">
                     <a
-                      href={`/menu/${product.slug}`}
+                      href={`/product/${product.slug}`}
                       target="_blank"
                       className="font-semibold text-slate-800 hover:text-brand-600"
                     >
