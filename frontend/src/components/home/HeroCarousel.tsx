@@ -53,7 +53,8 @@ export default function HeroCarousel() {
         window.$ = window.jQuery = jQuery;
         await import('slick-carousel');
 
-        $('.hero-slider').slick({
+        // We use (window as any) to avoid TS errors with the jQuery plugin
+        (window as any).$('.hero-slider').slick({
           dots: true,
           infinite: true,
           speed: 500,
@@ -75,8 +76,8 @@ export default function HeroCarousel() {
 
     return () => {
       clearInterval(interval);
-      if (typeof window !== 'undefined' && window.$('.hero-slider').length) {
-        window.$('.hero-slider').slick('unslick');
+      if (typeof window !== 'undefined' && (window as any).$('.hero-slider').length) {
+        (window as any).$('.hero-slider').slick('unslick');
       }
     };
   }, []);
@@ -88,40 +89,40 @@ export default function HeroCarousel() {
   };
 
   return (
-    <div class="relative w-full overflow-hidden bg-white">
-      <div class="absolute top-4 right-4 z-20 flex items-center gap-2 rounded-full bg-[#F2AB27] px-4 py-2 font-bold text-ink-900 shadow-lg animate-pulse">
-        <span class="text-xs uppercase tracking-tighter">Termina en:</span>
-        <span class="font-mono text-lg">{formatTime(timer)}</span>
+    <div className="relative w-full overflow-hidden bg-white">
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2 rounded-full bg-[#F2AB27] px-4 py-2 font-bold text-ink-900 shadow-lg animate-pulse">
+        <span className="text-xs uppercase tracking-tighter">Termina en:</span>
+        <span className="font-mono text-lg">{formatTime(timer)}</span>
       </div>
 
-      <div class="hero-slider">
+      <div className="hero-slider">
         {BANNERS.map((banner) => (
-          <div key={banner.id} class="relative flex min-h-[400px] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 to-white px-6 py-12 sm:px-12">
-            <div class="grid max-w-6xl grid-cols-1 items-center gap-8 md:grid-cols-2">
-              <div class="text-center md:text-left">
+          <div key={banner.id} className="relative flex min-h-[400px] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 to-white px-6 py-12 sm:px-12">
+            <div className="grid max-w-6xl grid-cols-1 items-center gap-8 md:grid-cols-2">
+              <div className="text-center md:text-left">
                 {banner.badge && (
-                  <span class="inline-block rounded-full bg-brand-600 px-3 py-1 text-xs font-bold text-white uppercase tracking-widest mb-4">
+                  <span className="inline-block rounded-full bg-brand-600 px-3 py-1 text-xs font-bold text-white uppercase tracking-widest mb-4">
                     {banner.badge}
                   </span>
                 )}
-                <h2 class="font-display text-4xl uppercase leading-none tracking-tight text-ink-900 sm:text-6xl">
+                <h2 className="font-display text-4xl uppercase leading-none tracking-tight text-ink-900 sm:text-6xl">
                   {banner.title}
                 </h2>
-                <p class="mt-4 text-lg text-ink-800/70 sm:text-xl">
+                <p className="mt-4 text-lg text-ink-800/70 sm:text-xl">
                   {banner.subtitle}
                 </p>
                 <a
                   href={banner.ctaLink}
-                  class="btn-primary mt-8 inline-block px-8 py-4 text-lg font-bold transition-transform hover:scale-105"
+                  className="btn-primary mt-8 inline-block px-8 py-4 text-lg font-bold transition-transform hover:scale-105"
                 >
                   {banner.ctaText}
                 </a>
               </div>
-              <div class="relative flex justify-center">
+              <div className="relative flex justify-center">
                 <img
                   src={banner.image}
                   alt={banner.title}
-                  class="h-64 w-auto object-contain drop-shadow-2xl sm:h-80"
+                  className="h-64 w-auto object-contain drop-shadow-2xl sm:h-80"
                 />
               </div>
             </div>
@@ -129,8 +130,8 @@ export default function HeroCarousel() {
         ))}
       </div>
 
-      <div class="absolute bottom-0 left-0 right-0 h-8 w-full bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
-      <div class="absolute -bottom-4 left-0 right-0 h-8 w-full rounded-[40px] bg-white shadow-inner pointer-events-none" style={{ clipPath: 'ellipse(50% 100% at 50% 100%)' }}></div>
+      <div className="absolute bottom-0 left-0 right-0 h-8 w-full bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+      <div className="absolute -bottom-4 left-0 right-0 h-8 w-full rounded-[40px] bg-white shadow-inner pointer-events-none" style={{ clipPath: 'ellipse(50% 100% at 50% 100%)' }}></div>
     </div>
   );
 }
