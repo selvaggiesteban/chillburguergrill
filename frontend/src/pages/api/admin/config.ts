@@ -3,7 +3,7 @@ import { errorJson, json } from '../../../lib/api';
 import { assertAdmin, readJson, withValidation } from '../../../lib/admin';
 import { getAllConfig, setConfig } from '../../../lib/d1';
 
-const ALLOWED_KEYS = ['contact', 'hours', 'delivery', 'bank', 'payments', 'hero'] as const;
+const ALLOWED_KEYS = ['contact', 'hours', 'delivery', 'bank', 'payments', 'hero', 'notices'] as const;
 type ConfigKey = (typeof ALLOWED_KEYS)[number];
 
 export const GET: APIRoute = async ({ locals }) => {

@@ -1,5 +1,6 @@
 ---
 import CartBar from './cart/CartBar';
+import NotificationsBell from './notifications/NotificationsBell';
 ---
 
 <header class="sticky top-0 z-40 bg-[#4123C0] text-white">
@@ -8,11 +9,8 @@ import CartBar from './cart/CartBar';
       <img src="/images/logo.webp" alt="Chill Burguer Grill" width="512" height="512" class="h-12 w-auto" />
     </a>
 
-    <nav class="flex items-center gap-1" aria-label="Principal">
-      <a href="/contacto" class="rounded-lg px-4 py-2 font-semibold text-white transition hover:bg-white/15">Contacto</a>
-    </nav>
-
     <div class="flex items-center gap-1">
+      <NotificationsBell client:load />
       <CartBar client:load />
     </div>
   </div>

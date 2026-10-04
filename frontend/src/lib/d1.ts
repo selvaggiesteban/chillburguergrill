@@ -707,6 +707,15 @@ export type DeliveryConfig = {
 
 export type BankConfig = { alias: string; cbu: string; titular: string };
 
+/** Novedad/promo cargada desde el panel (clave `notices` de store_config). */
+export type NoticeRow = {
+  id: string;
+  title: string;
+  body?: string;
+  createdAt: string;
+  active?: boolean;
+};
+
 export async function getConfig<T>(db: DB, key: string): Promise<T | null> {
   const row = await db.prepare('SELECT config_value FROM store_config WHERE config_key = ?').bind(key).first<{ config_value: string }>();
   if (!row) return null;

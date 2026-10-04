@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useCart, cartSubtotal, clearCart, unitPriceOf, type CartItem } from '../../lib/cart';
+import { saveLastOrder } from '../../lib/notifications';
 import { formatPrice } from '../../lib/utils';
 
 type Zone = { name: string; cost: number };
@@ -113,6 +114,7 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
       });
       const data = (await response.json().catch(() => ({}))) as {
         redirect?: string;
+        orderId?: string;
         error?: string;
       };
       if (!response.ok || !data.redirect) {
@@ -120,6 +122,7 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
         return;
       }
       clearCart();
+      if (data.orderId) saveLastOrder(data.orderId);
       window.location.href = data.redirect;
     } catch {
       setError('Error de conexión. Probá de nuevo en unos segundos.');

@@ -19,9 +19,14 @@ const PUBLIC_CACHE_RULES: CacheRule[] = [
   { pattern: /^\/menu\/[^/]+$/, sMaxAge: 300 }, // detalle: 5 min
   { pattern: /^\/contacto$/, sMaxAge: 3600 }, // casi estático: 1 h
   { pattern: /^\/sitemap\.xml$/, sMaxAge: 3600 },
+  { pattern: /^\/api\/noticias$/, sMaxAge: 120 }, // novedades de la campana
+  { pattern: /^\/api\/pedido\/[^/]+$/, sMaxAge: 30 }, // estado del pedido
 ];
 
-const NEVER_CACHE_PREFIXES = ['/admin', '/api', '/checkout', '/pedido'];
+// Nunca se cachea HTML con datos personales ni mutaciones (POST/PUT/DELETE no
+// entran igual porque la regla exige GET). Las rutas /api que no están en
+// PUBLIC_CACHE_RULES tampoco se cachean: no matchean ninguna regla.
+const NEVER_CACHE_PREFIXES = ['/admin', '/checkout', '/pedido'];
 
 function isNeverCached(pathname: string): boolean {
   return NEVER_CACHE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

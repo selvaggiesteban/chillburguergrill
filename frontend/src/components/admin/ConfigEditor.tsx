@@ -15,6 +15,7 @@ type Hours = { days: Record<DayKey, DayHours> };
 type Delivery = { zones: { name: string; cost: number }[]; free_from: number };
 type Bank = { alias: string; cbu: string; titular: string };
 type Payments = { mercadopago: boolean; transfer: boolean; cash: boolean };
+type NoticeItem = { id: string; title: string; body: string; createdAt: string; active: boolean };
 
 type Config = {
   contact: Contact;
@@ -22,6 +23,7 @@ type Config = {
   delivery: Delivery;
   bank: Bank;
   payments: Payments;
+  notices: NoticeItem[];
 };
 
 const DAY_LABELS: Record<DayKey, string> = {
@@ -53,7 +55,21 @@ const EMPTY: Config = {
   delivery: { zones: [], free_from: 0 },
   bank: { alias: '', cbu: '', titular: '' },
   payments: { mercadopago: true, transfer: true, cash: true },
+  notices: [],
 };
+
+function normalizeNotices(raw: unknown): NoticeItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((n): n is Record<string, unknown> => !!n && typeof n === 'object')
+    .map((n) => ({
+      id: typeof n.id === 'string' && n.id ? n.id : crypto.randomUUID(),
+      title: typeof n.title === 'string' ? n.title : '',
+      body: typeof n.body === 'string' ? n.body : '',
+      createdAt: typeof n.createdAt === 'string' ? n.createdAt : new Date().toISOString(),
+      active: n.active !== false,
+    }));
+}
 
 /** Acepta el formato por día y el legado (rango por grupo de días). */
 function normalizeHours(raw: unknown): Hours {
@@ -107,6 +123,7 @@ export default function ConfigEditor() {
           delivery: { ...EMPTY.delivery, ...(c.delivery ?? {}) },
           bank: { ...EMPTY.bank, ...(c.bank ?? {}) },
           payments: { ...EMPTY.payments, ...(c.payments ?? {}) },
+          notices: normalizeNotices(c.notices),
         });
       })
       .catch(() => setMessage({ kind: 'error', text: 'No se pudo cargar la configuración' }))
@@ -135,6 +152,7 @@ export default function ConfigEditor() {
   if (loading) return <p className="card p-8 text-center text-slate-500">Cargando configuración…</p>;
 
   const zoneErrors = config.delivery.zones.some((z) => !z.name.trim() || Number.isNaN(z.cost));
+  const noticeErrors = config.notices.some((n) => !n.title.trim());
 
   return (
     <div className="max-w-3xl space-y-5">
@@ -347,6 +365,94 @@ export default function ConfigEditor() {
         <button type="button" disabled={savingKey === 'payments'} onClick={() => void save('payments')} className="btn-primary mt-4 px-4 py-2 text-sm">
           {savingKey === 'payments' ? 'Guardando…' : 'Guardar pagos'}
         </button>
+      </section>
+
+      <section className="card p-5">
+        <h2 className="mb-1 font-display text-xl uppercase text-slate-800">Novedades</h2>
+        <p className="mb-4 text-sm text-slate-500">
+          Aparecen en la campana de notificaciones de la cabecera: promos, cambios de horario, avisos del local.
+        </p>
+        <div className="space-y-3">
+          {config.notices.map((notice, index) => (
+            <div key={notice.id} className="rounded-xl border border-slate-200 p-3">
+              <div className="flex items-start gap-2">
+                <input
+                  className="input"
+                  placeholder="Título (ej: 2x1 los jueves)"
+                  value={notice.title}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      notices: config.notices.map((n, i) => (i === index ? { ...n, title: e.target.value } : n)),
+                    })
+                  }
+                />
+                <button
+                  type="button"
+                  className="btn-ghost px-2 text-red-500"
+                  onClick={() => setConfig({ ...config, notices: config.notices.filter((_, i) => i !== index) })}
+                  aria-label="Quitar novedad"
+                >
+                  ✕
+                </button>
+              </div>
+              <textarea
+                className="input mt-2"
+                rows={2}
+                placeholder="Texto (opcional)"
+                value={notice.body}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    notices: config.notices.map((n, i) => (i === index ? { ...n, body: e.target.value } : n)),
+                  })
+                }
+              />
+              <label className="mt-2 flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={notice.active}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      notices: config.notices.map((n, i) => (i === index ? { ...n, active: e.target.checked } : n)),
+                    })
+                  }
+                />
+                Visible en la campana
+                <span className="ml-auto text-xs text-slate-400">
+                  {notice.createdAt ? new Date(notice.createdAt).toLocaleDateString('es-AR') : ''}
+                </span>
+              </label>
+            </div>
+          ))}
+          {config.notices.length === 0 && <p className="text-sm text-slate-400">Sin novedades publicadas.</p>}
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            className="btn-secondary px-4 py-2 text-sm"
+            onClick={() =>
+              setConfig({
+                ...config,
+                notices: [
+                  ...config.notices,
+                  { id: crypto.randomUUID(), title: '', body: '', createdAt: new Date().toISOString(), active: true },
+                ],
+              })
+            }
+          >
+            + Agregar novedad
+          </button>
+          <button
+            type="button"
+            disabled={savingKey === 'notices' || noticeErrors}
+            onClick={() => void save('notices')}
+            className="btn-primary px-4 py-2 text-sm"
+          >
+            {savingKey === 'notices' ? 'Guardando…' : 'Guardar novedades'}
+          </button>
+        </div>
       </section>
     </div>
   );
