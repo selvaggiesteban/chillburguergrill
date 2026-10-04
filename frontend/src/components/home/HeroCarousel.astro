@@ -1,7 +1,4 @@
 ---
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-
 interface Banner {
   id: number;
   title: string;
@@ -28,7 +25,7 @@ const BANNERS: Banner[] = [
     subtitle: '2x1 los jueves de 18hs a 22hs',
     image: '/images/menu/default.svg',
     ctaText: 'Ver combos',
-    ctaLink: '/menu#combos',
+    ctaLink: '/menu#papas-guarniciones',
     badge: 'TOP',
   },
   {
@@ -43,87 +40,154 @@ const BANNERS: Banner[] = [
 ---
 
 <div class="relative w-full overflow-hidden bg-white">
-  <div id="timer-container" class="absolute top-4 right-4 z-20 flex items-center gap-2 rounded-full bg-[#F2AB27] px-4 py-2 font-bold text-ink-900 shadow-lg animate-pulse">
+  <div
+    id="timer-container"
+    class="absolute right-4 top-4 z-20 flex items-center gap-2 rounded-full bg-[#F2AB27] px-4 py-2 font-bold text-ink-900 shadow-lg"
+  >
     <span class="text-xs uppercase tracking-tighter">Termina en:</span>
     <span id="timer-clock" class="font-mono text-lg">38:27</span>
   </div>
 
-  <div class="hero-slider">
-    {BANNERS.map((banner) => (
-      <div class="relative flex min-h-[400px] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 to-white px-6 py-12 sm:px-12">
-        <div class="grid max-w-6xl grid-cols-1 items-center gap-8 md:grid-cols-2">
-          <div class="text-center md:text-left">
-            {banner.badge && (
-              <span class="inline-block rounded-full bg-brand-600 px-3 py-1 text-xs font-bold text-white uppercase tracking-widest mb-4">
-                {banner.badge}
-              </span>
-            )}
-            <h2 class="font-display text-4xl uppercase leading-none tracking-tight text-ink-900 sm:text-6xl">
-              {banner.title}
-            </h2>
-            <p class="mt-4 text-lg text-ink-800/70 sm:text-xl">
-              {banner.subtitle}
-            </p>
-            <a href={banner.ctaLink} class="btn-primary mt-8 inline-block px-8 py-4 text-lg font-bold transition-transform hover:scale-105">
-              {banner.ctaText}
-            </a>
-          </div>
-          <div class="relative flex justify-center">
-            <img src={banner.image} alt={banner.title} class="h-64 w-auto object-contain drop-shadow-2xl sm:h-80" />
+  <div id="hero-slider" class="relative min-h-[400px] sm:min-h-[460px]" data-autoplay="5000">
+    {
+      BANNERS.map((banner, index) => (
+        <div
+          class:list={[
+            'hero-slide absolute inset-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-brand-50 to-white px-6 py-14 transition-opacity duration-700 sm:px-12',
+            index === 0 ? 'opacity-100' : 'opacity-0',
+          ]}
+          data-slide={index}
+          aria-hidden={index !== 0 ? 'true' : 'false'}
+        >
+          <div class="grid max-w-6xl grid-cols-1 items-center gap-8 md:grid-cols-2">
+            <div class="text-center md:text-left">
+              {banner.badge && (
+                <span class="mb-4 inline-block rounded-full bg-brand-600 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
+                  {banner.badge}
+                </span>
+              )}
+              <h2 class="font-display text-4xl uppercase leading-none tracking-tight text-ink-900 sm:text-6xl">
+                {banner.title}
+              </h2>
+              <p class="mt-4 text-lg text-ink-800/70 sm:text-xl">{banner.subtitle}</p>
+              <a
+                href={banner.ctaLink}
+                class="btn-primary mt-8 inline-block px-8 py-4 text-lg font-bold transition-transform hover:scale-105"
+              >
+                {banner.ctaText}
+              </a>
+            </div>
+            <div class="relative flex justify-center">
+              <img
+                src={banner.image}
+                alt={banner.title}
+                class="h-64 w-auto object-contain drop-shadow-2xl sm:h-80"
+              />
+            </div>
           </div>
         </div>
-      </div>
-    ))}
+      ))
+    }
+
+    <div class="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2" role="tablist" aria-label="Banners">
+      {
+        BANNERS.map((banner, index) => (
+          <button
+            type="button"
+            class:list={[
+              'hero-dot h-2.5 rounded-full transition-all',
+              index === 0 ? 'w-8 bg-brand-600' : 'w-2.5 bg-ink-800/25 hover:bg-ink-800/40',
+            ]}
+            data-dot={index}
+            aria-label={`Ir al banner ${index + 1}: ${banner.title}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+          />
+        ))
+      }
+    </div>
   </div>
 
-  <div class="absolute bottom-0 left-0 right-0 h-8 w-full bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
-  <div class="absolute -bottom-4 left-0 right-0 h-8 w-full rounded-[40px] bg-white shadow-inner pointer-events-none" style="clip-path: ellipse(50% 100% at 50% 100%)"></div>
+  <div class="pointer-events-none absolute bottom-0 left-0 right-0 h-8 w-full bg-gradient-to-t from-white to-transparent"></div>
 </div>
 
 <script>
-  import $ from 'jquery';
-  import 'slick-carousel';
+  // Carrusel propio del hero (sin dependencias): autoplay + dots + teclado.
+  function setupHeroSlider() {
+    const root = document.getElementById('hero-slider');
+    if (!root || root.dataset.ready === '1') return;
+    root.dataset.ready = '1';
 
-  function initSlick() {
-    const $slider = $('.hero-slider');
-    if ($slider.length && !($slider.hasClass('slick-initialized'))) {
-      $slider.slick({
-        dots: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        autoplay: true,
-        autoplaySpeed: 5000,
-        arrows: false,
-        fade: true,
+    const slides = Array.from(root.querySelectorAll<HTMLElement>('.hero-slide'));
+    const dots = Array.from(root.querySelectorAll<HTMLElement>('.hero-dot'));
+    if (slides.length < 2) return;
+
+    let current = 0;
+    let timer = 0;
+    const delay = Number(root.dataset.autoplay) || 5000;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const show = (index: number) => {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, i) => {
+        const active = i === current;
+        slide.classList.toggle('opacity-100', active);
+        slide.classList.toggle('opacity-0', !active);
+        slide.setAttribute('aria-hidden', active ? 'false' : 'true');
       });
-    }
+      dots.forEach((dot, i) => {
+        const active = i === current;
+        dot.classList.toggle('w-8', active);
+        dot.classList.toggle('bg-brand-600', active);
+        dot.classList.toggle('w-2.5', !active);
+        dot.classList.toggle('bg-ink-800/25', !active);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+    };
+
+    const stop = () => window.clearInterval(timer);
+    const start = () => {
+      stop();
+      if (reduceMotion) return;
+      timer = window.setInterval(() => show(current + 1), delay);
+    };
+
+    // Estado inicial (el primer slide ya viene visible desde el SSR).
+    show(0);
+    start();
+
+    dots.forEach((dot, i) => dot.addEventListener('click', () => { show(i); start(); }));
+
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { show(current + 1); start(); }
+      if (e.key === 'ArrowLeft') { show(current - 1); start(); }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') start();
+      else stop();
+    });
   }
 
   function startTimer() {
-    let seconds = 2328;
     const clock = document.getElementById('timer-clock');
-    if (!clock) return;
+    if (!clock || clock.dataset.ready === '1') return;
+    clock.dataset.ready = '1';
 
-    const updateClock = () => {
+    let seconds = 2328;
+    const update = () => {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
       clock.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
       if (seconds > 0) seconds--;
     };
-
-    updateClock();
-    setInterval(updateClock, 1000);
+    update();
+    window.setInterval(update, 1000);
   }
 
-  // Initialize on first load
-  initSlick();
+  setupHeroSlider();
   startTimer();
-
-  // Initialize on Astro View Transitions page swaps
-  document.addEventListener('astro:page-load', () => {
-    initSlick();
-    startTimer();
-  });
 </script>

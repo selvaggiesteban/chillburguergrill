@@ -16,7 +16,8 @@ type CacheRule = { pattern: RegExp; sMaxAge: number };
 const PUBLIC_CACHE_RULES: CacheRule[] = [
   { pattern: /^\/$/, sMaxAge: 300 }, // home: 5 min
   { pattern: /^\/menu$/, sMaxAge: 300 }, // carta: 5 min
-  { pattern: /^\/menu\/[^/]+$/, sMaxAge: 300 }, // detalle: 5 min
+  { pattern: /^\/menu\/[^/]+$/, sMaxAge: 300 }, // redirect de slug viejo: 5 min
+  { pattern: /^\/product\/[^/]+$/, sMaxAge: 300 }, // detalle: 5 min
   { pattern: /^\/contacto$/, sMaxAge: 3600 }, // casi estático: 1 h
   { pattern: /^\/sitemap\.xml$/, sMaxAge: 3600 },
   { pattern: /^\/api\/noticias$/, sMaxAge: 120 }, // novedades de la campana

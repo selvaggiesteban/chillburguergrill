@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProductDetailView from '../../components/product/ProductDetailView';
-import { getProductBySlug, listExtrasForProduct } from '../../lib/d1';
+import { getProductBySlug, listExtrasForProduct, getActivePromotions, bestPromoFor } from '../../lib/d1';
 
 const { slug } = Astro.params;
 if (!slug) return Astro.redirect('/menu');
@@ -11,14 +11,21 @@ const product = await getProductBySlug(db, slug);
 
 if (!product) return Astro.redirect('/menu');
 
-const extras = await listExtrasForProduct(db, product.id);
+const [extras, promos] = await Promise.all([
+  listExtrasForProduct(db, product.id),
+  getActivePromotions(db, new Date().toISOString()),
+]);
+
+const promo = bestPromoFor(promos, product.id, product.category_id, product.price);
 ---
 
 <BaseLayout title={product.name} description={product.description}>
-  <ProductDetailView 
-    client:load 
-    product={product} 
-    extras={extras} 
-    basePrice={product.price} 
+  <ProductDetailView
+    client:load
+    product={product}
+    extras={extras}
+    basePrice={promo.promoPrice}
+    originalPrice={product.price}
+    discountPct={promo.discountPct}
   />
 </BaseLayout>

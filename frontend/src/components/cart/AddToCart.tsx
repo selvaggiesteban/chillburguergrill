@@ -9,9 +9,11 @@ type Props = {
   extras?: ExtraOption[];
   /** Botón chico para tarjetas de la carta (sin selector de extras). */
   compact?: boolean;
+  /** Botón circular "+" flotante sobre la imagen (sin selector de extras). */
+  icon?: boolean;
 };
 
-export default function AddToCart({ product, extras = [], compact = false }: Props) {
+export default function AddToCart({ product, extras = [], compact = false, icon = false }: Props) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -43,6 +45,25 @@ export default function AddToCart({ product, extras = [], compact = false }: Pro
     addToCart(product, selectedExtras, quantity);
     setAdded(true);
   };
+
+  if (icon) {
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleAdd();
+        }}
+        aria-label={`Agregar ${product.name} al carrito`}
+        className={`flex h-11 w-11 items-center justify-center rounded-full text-xl font-bold shadow-lg transition hover:scale-110 active:scale-95 ${
+          added ? 'bg-green-600 text-white' : 'bg-[#4123C0] text-white hover:bg-brand-700'
+        }`}
+      >
+        {added ? '✓' : '+'}
+      </button>
+    );
+  }
 
   if (compact) {
     return (

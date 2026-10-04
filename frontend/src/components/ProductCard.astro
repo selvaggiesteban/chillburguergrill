@@ -6,10 +6,10 @@ import AddToCart from './cart/AddToCart';
 
 interface Props {
   product: Product;
-  promos: Promotion[];
+  promos?: Promotion[];
 }
 
-const { product, promos } = Astro.props;
+const { product, promos = [] } = Astro.props;
 
 const promo = bestPromoFor(promos, product.id, product.category_id, product.price);
 const hasPromo = promo.discountPct > 0;

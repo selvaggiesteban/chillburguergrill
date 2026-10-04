@@ -1,7 +1,7 @@
 ---
 import '../styles.css';
 import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import WhatsAppButton from '../components/WhatsAppButton.astro';
 import { loadPublicConfig, jsonLdOpeningHours, whatsappE164 } from '../lib/public-config';
 
 interface Props {
@@ -18,7 +18,7 @@ const {
   noindex = false,
 } = Astro.props;
 
-const site = Astro.site ?? new URL('https://chillburguergrill.com');
+const site = Astro.site ?? new URL('https://chillburguergrill.pages.dev');
 const canonical = new URL(Astro.url.pathname, site).toString();
 const defaultOgImage = new URL('/images/og.png', site).toString();
 const imageIsRaster = !!image && !/\.svg$/i.test(image ?? '');
@@ -86,6 +86,6 @@ const robots = noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview
     <main class="flex-1">
       <slot />
     </main>
-    <Footer contact={contact} hours={hours} />
+    <WhatsAppButton />
   </body>
 </html>

@@ -9,7 +9,7 @@ export const GET: APIRoute = async ({ locals, url, site }) => {
   let paths: string[] = STATIC_PATHS;
   try {
     const { rows } = await listProducts(locals.runtime.env.DB, { includeHidden: false, limit: 300 });
-    paths = [...STATIC_PATHS, ...rows.map((p) => `/menu/${p.slug}`)];
+    paths = [...STATIC_PATHS, ...rows.map((p) => `/product/${p.slug}`)];
   } catch {
     /* sin D1 seguimos sirviendo las rutas estáticas */
   }

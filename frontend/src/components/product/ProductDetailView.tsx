@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Product, Extra } from '../../lib/d1';
+import type { Product, Extra } from '../../lib/d1';
 import { addToCart } from '../../lib/cart';
+import { formatPrice, parseImages, coverOf } from '../../lib/utils';
 
 interface ModifierGroup {
   id: string;
@@ -14,12 +15,24 @@ interface ProductDetailViewProps {
   product: Product;
   extras: Extra[];
   basePrice: number;
+  originalPrice?: number;
+  discountPct?: number;
 }
 
-export default function ProductDetailView({ product, extras, basePrice }: ProductDetailViewProps) {
+export default function ProductDetailView({
+  product,
+  extras,
+  basePrice,
+  originalPrice = basePrice,
+  discountPct = 0,
+}: ProductDetailViewProps) {
   const [quantity, setQuantity] = useState(1);
   const [selections, setSelections] = useState<Record<string, number | number[]>>({});
-  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [added, setAdded] = useState(false);
+
+  const image = coverOf(parseImages(product.images), product.cover_index);
+  const soldOut = product.disponible === 0;
+  const hasPromo = discountPct > 0;
 
   // Virtual Grouping Logic
   const modifierGroups = useMemo((): ModifierGroup[] => {
@@ -70,42 +83,39 @@ export default function ProductDetailView({ product, extras, basePrice }: Produc
     });
   };
 
-  const handlePreset = (presetName: string) => {
-    // Mock preset logic - in real app, this would come from a config
-    const presets: Record<string, Record<string, any>> = {
-      'Popular': { 'cheese': 101, 'drinks': 201 },
-      'Full House': { 'cheese': 101, 'bacon': 102, 'drinks': 201 }
-    };
-    const preset = presets[presetName];
-    if (preset) {
-      setSelections(preset);
-      setActivePreset(presetName);
-    }
-  };
-
   const isAddingDisabled = useMemo(() => {
     return modifierGroups.some(group => group.is_required && !selections[group.id]);
   }, [modifierGroups, selections]);
 
   const handleAddToCart = () => {
-    const selectedIds: number[] = [];
-    Object.values(selections).forEach(val => {
-      const ids = Array.isArray(val) ? val : [val];
-      selectedIds.push(...ids);
+    const selectedExtras = extras.filter((extra) => {
+      const value = selections[extra.group_id || 'global'];
+      return Array.isArray(value) ? value.includes(extra.id) : value === extra.id;
     });
 
-    addToCart({
-      productId: product.id,
-      productName: product.name,
-      quantity,
-      unitPrice: totalPrice / quantity,
-      extras: selectedIds
-    });
-    alert('Producto agregado al carrito');
+    addToCart(
+      {
+        productId: product.id,
+        slug: product.slug,
+        name: product.name,
+        image,
+        basePrice,
+      },
+      selectedExtras.map((extra) => ({ id: extra.id, name: extra.name, price: extra.price })),
+      quantity
+    );
+
+    setAdded(true);
   };
 
+  useEffect(() => {
+    if (!added) return;
+    const timer = setTimeout(() => setAdded(false), 1600);
+    return () => clearTimeout(timer);
+  }, [added]);
+
   return (
-    <div className="relative flex flex-col min-h-screen bg-white">
+    <div className="relative flex flex-col min-h-screen bg-white pb-28">
       {/* Floating Header */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 backdrop-blur-md bg-white/70 border-b border-ink-800/5">
         <button onClick={() => window.history.back()} className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-ink-900">
@@ -119,10 +129,23 @@ export default function ProductDetailView({ product, extras, basePrice }: Produc
 
       {/* Hero Section */}
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-zinc-900 pt-14">
-        <img src={product.images.split(',')[0]} alt={product.name} className="w-full h-full object-cover" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
-          <div className="text-sm font-semibold">★ 4.4 (179) · Más vendido</div>
-          <div className="text-xs opacity-80">Buen sabor</div>
+        <img src={image} alt={product.name} className="w-full h-full object-cover" />
+        <div className="absolute bottom-0 left-0 right-0 flex flex-wrap items-center gap-2 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
+          {hasPromo && (
+            <span className="rounded-full bg-[#F2AB27] px-2.5 py-1 text-xs font-bold text-ink-900">
+              {discountPct}% OFF
+            </span>
+          )}
+          {product.destacado === 1 && (
+            <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-bold ring-1 ring-white/40 backdrop-blur">
+              Más vendido
+            </span>
+          )}
+          {soldOut && (
+            <span className="rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold ring-1 ring-white/30">
+              Agotado
+            </span>
+          )}
         </div>
       </div>
 
@@ -130,21 +153,11 @@ export default function ProductDetailView({ product, extras, basePrice }: Produc
       <section className="p-4 flex flex-col gap-3">
         <h2 className="text-2xl font-extrabold leading-tight text-ink-900">{product.name}</h2>
         <p className="text-sm text-zinc-500 leading-relaxed">{product.description}</p>
-        <div className="flex flex-col mt-2">
-          <span className="text-xl font-bold text-ink-900">${basePrice.toLocaleString()}</span>
-          <span className="text-xs text-zinc-400">Precio base sin impuestos</span>
-        </div>
-
-        {/* Quick Preset Card */}
-        <div className="mt-4 p-4 bg-zinc-100 rounded-2xl flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-ink-900">Personalización más popular</span>
-            <span className="text-xs text-zinc-500">Sugerencia del chef para este producto</span>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" checked={activePreset === 'Popular'} onChange={() => handlePreset(activePreset === 'Popular' ? '' : 'Popular')} />
-            <div className="w-11 h-6 bg-zinc-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
-          </label>
+        <div className="mt-2 flex items-baseline gap-3">
+          {hasPromo && (
+            <span className="text-sm text-zinc-400 line-through">{formatPrice(originalPrice)}</span>
+          )}
+          <span className="text-2xl font-extrabold text-ink-900">{formatPrice(basePrice)}</span>
         </div>
       </section>
 
@@ -161,10 +174,10 @@ export default function ProductDetailView({ product, extras, basePrice }: Produc
             </div>
             <div className="flex flex-col gap-2">
               {group.options.map(option => {
-                const isSelected = Array.isArray(selections[group.id]) 
-                  ? selections[group.id].includes(option.id) 
-                  : selections[group.id] === option.id;
-                
+                const current = selections[group.id];
+                const isSelected = Array.isArray(current)
+                  ? current.includes(option.id)
+                  : current === option.id;
                 return (
                   <div 
                     key={option.id} 
@@ -190,7 +203,7 @@ export default function ProductDetailView({ product, extras, basePrice }: Produc
       <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-zinc-100 shadow-lg z-50 pb-safe">
         <div className="flex justify-between items-center mb-4">
           <span className="font-bold text-ink-900">Tu producto</span>
-          <span className="text-xl font-extrabold text-ink-900">${totalPrice.toLocaleString()}</span>
+          <span className="text-xl font-extrabold text-ink-900">{formatPrice(totalPrice)}</span>
         </div>
         <div className="flex gap-4">
           <div className="flex items-center bg-zinc-100 rounded-full p-1 h-12">
@@ -199,11 +212,11 @@ export default function ProductDetailView({ product, extras, basePrice }: Produc
             <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center font-bold text-ink-900">+</button>
           </div>
           <button 
-            disabled={isAddingDisabled}
+            disabled={isAddingDisabled || soldOut}
             onClick={handleAddToCart}
-            className={`flex-1 h-12 rounded-full font-bold text-white transition-all ${isAddingDisabled ? 'bg-zinc-300 cursor-not-allowed' : 'bg-[#e60050] hover:bg-[#cc0047]'}`}
+            className={`flex-1 h-12 rounded-full font-bold text-white transition-all ${isAddingDisabled || soldOut ? 'bg-zinc-300 cursor-not-allowed' : added ? 'bg-green-600' : 'bg-brand-600 hover:bg-brand-700'}`}
           >
-            Agregar
+            {added ? '✓ Agregado' : soldOut ? 'Agotado' : 'Agregar'}
           </button>
         </div>
       </footer>
