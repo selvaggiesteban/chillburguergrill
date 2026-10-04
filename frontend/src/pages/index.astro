@@ -36,7 +36,7 @@ const [{ rows: featured }, categories, promos] = await Promise.all([
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
             {categories.map((category) => (
               <a
-                href={`/menu#${category.slug}`}
+                href="/menu"
                 class="card group relative overflow-hidden transition hover:-translate-y-1 hover:shadow-xl"
               >
                 <div class="aspect-[4/3] overflow-hidden bg-brand-50">

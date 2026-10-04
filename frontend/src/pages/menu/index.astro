@@ -1,77 +1,62 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProductCard from '../../components/ProductCard.astro';
-import { listCategories, listProducts, getActivePromotions } from '../../lib/d1';
+import { listProducts, listCategories } from '../../lib/d1';
 
 const db = Astro.locals.runtime.env.DB;
-// En paralelo: 3 subrequests D1 concurrentes en vez de 3 ida y vuelta.
-const [categories, { rows: products }, promos] = await Promise.all([
+
+// Fetch all categories and all products
+const [categories, allProducts] = await Promise.all([
   listCategories(db),
-  listProducts(db, { limit: 200 }),
-  getActivePromotions(db, new Date().toISOString()),
+  listProducts(db, { includeHidden: false })
 ]);
 
-const sections = categories
-  .map((category) => ({
-    category,
-    products: products.filter((p) => p.category_id === category.id),
-  }))
-  .filter((s) => s.products.length > 0);
+// Group products by category
+const categorizedProducts = categories.map(cat => ({
+  category: cat,
+  products: allProducts.rows.filter(p => p.category_id === cat.id).sort((a, b) => a.orden - b.orden)
+})).filter(group => group.products.length > 0);
 ---
 
-<BaseLayout
-  title="Carta — Chill Burguer Grill"
-  description="Consultá la carta: hamburguesas smash, guarniciones y bebidas. Hacé tu pedido online con delivery o retiro en local."
->
-  <div class="wrap py-10">
-    <header class="mb-8 text-center">
-      <h1 class="section-title">Nuestra carta</h1>
-      <p class="mx-auto mt-2 max-w-xl text-ink-800/60">
-        Todo se hace a la parrilla al momento. Elegí tus favoritos y armá tu pedido.
-      </p>
+<BaseLayout title="Nuestra Carta" description="Descubre las mejores hamburguesas smash de Lanús.">
+  <div class="wrap py-8 sm:py-16">
+    <header class="mb-12 text-center">
+      <h1 class="font-display text-4xl uppercase tracking-tight text-ink-900 sm:text-6xl">
+        Nuestra Carta
+      </h1>
+      <p class="mt-4 text-lg text-ink-800/60">Sabor real, fuego lento, smash perfecto.</p>
     </header>
 
-    {
-      sections.length === 0 ? (
-        <div class="card p-10 text-center text-ink-800/60">La carta está en preparación. ¡Volvé pronto!</div>
-      ) : (
-        <>
-          <nav class="mb-10 flex snap-x gap-2 overflow-x-auto pb-2" aria-label="Categorías">
-            {sections.map(({ category }) => (
-              <a href={`#${category.slug}`} class="chip snap-start">
-                {category.name}
-              </a>
-            ))}
-          </nav>
-
-          <div class="space-y-14">
-            {sections.map(({ category, products: categoryProducts }) => (
-              <section id={category.slug} class="scroll-mt-24">
-                <div class="mb-5 flex items-baseline justify-between gap-4 border-b border-ink-800/10 pb-3">
-                  <h2 class="font-display text-2xl uppercase tracking-wide text-ink-800 sm:text-3xl">
-                    {category.name}
-                  </h2>
-                  {category.description && (
-                    <p class="hidden text-sm text-ink-800/50 sm:block">{category.description}</p>
-                  )}
-                </div>
-                <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {categoryProducts.map((product) => (
-                    <ProductCard product={product} promos={promos} />
-                  ))}
-                </div>
-              </section>
-            ))}
+    <div class="flex flex-col gap-16">
+      {categorizedProducts.map(group => (
+        <section class="flex flex-col gap-6">
+          <div class="flex items-center justify-between px-2">
+            <h2 class="font-display text-[24px] leading-none uppercase tracking-wide text-ink-900">
+              {group.category.name}
+            </h2>
+            <div class="h-px flex-1 bg-ink-800/10 mx-4"></div>
+            <a href="#" class="text-sm font-bold text-brand-600 hover:underline">Ver todos</a>
           </div>
 
-          <section class="mt-14 rounded-2xl border border-ink-800/10 bg-white p-6">
-            <ul class="flex flex-col items-center gap-3 text-sm text-ink-800/70 sm:flex-row sm:justify-center sm:gap-10">
-              <li>🥫 Preguntá por las salsas disponibles.</li>
-              <li>🥤 Elegí tu bebida favorita.</li>
-            </ul>
-          </section>
-        </>
-      )
-    }
+          <div class="flex overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide gap-5 px-2">
+            {group.products.map(product => (
+              <div class="snap-start shrink-0 w-[280px] sm:w-[320px]">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
   </div>
+
+  <style>
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
 </BaseLayout>
