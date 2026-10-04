@@ -18,6 +18,7 @@
 - [✅] Pricing Engine: Secure calculation in `checkout.ts`
 - [✅] Payment Gateway: MercadoPago API (Preferences & Webhooks)
 - [✅] Payment Methods: Direct Transfer (10% discount), Cash (10% discount)
+- [✅] Product Detail Page: High-Fidelity UI with Modifier Groups, Quick Presets, and Sticky Purchase Bar
 - [✅] Admin Panel: Management interface
 - [✅] Security: `middleware.ts` Route Guards & Webhook validation
 - [✅] SEO: JSON-LD Restaurant Schema, Open Graph, robots.txt, sitemap.xml
@@ -29,6 +30,7 @@
 - **Home (`/`)**: GET | Public | HTTPS
 - **Menu (`/menu`)**: GET | Public | HTTPS
 - **Category Filter (`/menu#category`)**: GET | Public | HTTPS
+- **Product Detail (`/product/[slug]`)**: GET | Public | HTTPS
 - **Checkout (`/checkout`)**: POST | Public | HTTPS
 - **Admin Dashboard (`/admin/*`)**: GET/POST | Admin | HTTPS/Auth
 - **MP Webhook (`/api/webhook/mp`)**: POST | System | HTTPS
