@@ -27,9 +27,25 @@ function isNeverCached(pathname: string): boolean {
   return NEVER_CACHE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-function staleKeyFor(request: Request): Request {
+/**
+ * Namespace de cache por deploy: se inyecta en build (astro.config.mjs) con
+ * CF_PAGES_COMMIT_SHA/GITHUB_SHA, así que cada deploy arranca con la cache vacía
+ * y no sirve HTML de una versión anterior (el Cache API no se purga al desplegar).
+ */
+declare const __BUILD_ID__: string;
+
+function buildId(env: Env): string {
+  if (typeof __BUILD_ID__ !== 'undefined' && __BUILD_ID__) return __BUILD_ID__;
+  return env.CF_PAGES_COMMIT_SHA?.slice(0, 12) || 'local';
+}
+
+function keyFor(request: Request, prefix: string, id: string): Request {
   const url = new URL(request.url);
-  return new Request(new URL(`/__stale${url.pathname}${url.search}`, url.origin).toString());
+  return new Request(`${url.origin}/${prefix}/${id}${url.pathname}${url.search}`, request);
+}
+
+function staleKeyFor(request: Request, id: string): Request {
+  return keyFor(request, '__stale', id);
 }
 
 /**
@@ -94,10 +110,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // ------------------------------------------------------------
   const rule = PUBLIC_CACHE_RULES.find((r) => r.pattern.test(pathname));
   const cacheable = !!rule && request.method === 'GET' && !isNeverCached(pathname);
+  const cacheId = buildId(env);
 
   if (cacheable) {
     try {
-      const cached = await edgeCache(locals).match(request);
+      const cached = await edgeCache(locals).match(keyFor(request, '__v', cacheId));
       if (cached) return withHeader(cached, 'X-Cache', 'HIT');
     } catch (e) {
       console.error('[cache] match falló:', e);
@@ -111,7 +128,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     console.error('[render] error:', e);
     if (cacheable) {
       try {
-        const stale = await edgeCache(locals).match(staleKeyFor(request));
+        const stale = await edgeCache(locals).match(staleKeyFor(request, cacheId));
         if (stale) return withHeader(stale, 'X-Cache', 'STALE');
       } catch {
         /* noop */
@@ -150,8 +167,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   locals.runtime.ctx.waitUntil(
     Promise.allSettled([
-      edgeCache(locals).put(request, freshCopy),
-      edgeCache(locals).put(staleKeyFor(request), staleFor),
+      edgeCache(locals).put(keyFor(request, '__v', cacheId), freshCopy),
+      edgeCache(locals).put(staleKeyFor(request, cacheId), staleFor),
     ])
   );
 

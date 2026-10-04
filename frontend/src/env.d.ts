@@ -16,4 +16,6 @@ interface Env {
   IMAGES: R2Bucket;
   MP_ACCESS_TOKEN?: string;
   JWT_SECRET?: string;
+  /** Inyectado por Cloudflare Pages en cada deploy (no disponible en dev). */
+  CF_PAGES_COMMIT_SHA?: string;
 }
