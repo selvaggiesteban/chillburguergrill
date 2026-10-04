@@ -1,1 +1,32 @@
+# Dependencies
 node_modules/
+
+# Build output
+dist/
+.astro/
+
+# Cloudflare
+.wrangler/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Misc
+*.local
+.DS_Store
+Thumbs.db
+npm-debug.log*
+
+# Cloudflare dev secrets
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Fuentes de branding (originales en disco; a git solo van los optimizados
+# que viven en frontend/public/images y se regeneran con
+# frontend/scripts/build-brand-assets.mjs)
+/Chill/
+/logo.webp
+/*.jfif

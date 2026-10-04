@@ -1,0 +1,96 @@
+name: D1 quota watch
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check rowsRead / rowsWritten against free-tier quota
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::Missing secret CLOUDFLARE_API_TOKEN (Cloudflare API token with Account Read, en Settings > Secrets and variables > Actions)"
+            exit 1
+          fi
+
+          DB_ID="f7e04d5c-8119-4dd6-9bc0-0fa9b9b6eff1"
+          READ_QUOTA=5000000    # rows read / día (free tier)
+          WRITE_QUOTA=100000    # rows written / día (free tier)
+          READ_WARN=$((READ_QUOTA * 90 / 100))    # 4.500.000
+          WRITE_WARN=$((WRITE_QUOTA * 90 / 100))  # 90.000
+          STATUS=0
+
+          # Solo llamadas baratas (GraphQL): sin scans de tablas.
+          ACCOUNT_TAG=$(curl -sf -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            https://api.cloudflare.com/client/v4/accounts \
+            | jq -r '.result[0].id // empty')
+
+          if [ -z "$ACCOUNT_TAG" ]; then
+            echo "::error::Could not resolve Cloudflare account (token needs Account Read)"
+            exit 1
+          fi
+
+          TODAY=$(date -u +%F)
+          YESTERDAY=$(date -u -d "yesterday" +%F)
+
+          RESPONSE=$(curl -sf -X POST \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            https://api.cloudflare.com/client/v4/graphql/ \
+            -d "$(jq -n \
+              --arg accountTag "$ACCOUNT_TAG" \
+              --arg start "$YESTERDAY" \
+              --arg end "$TODAY" \
+              --arg databaseId "$DB_ID" \
+              '{
+                query: "query D1QuotaWatch($accountTag: string!, $start: Date!, $end: Date!, $databaseId: string!) { viewer { accounts(filter: { accountTag: $accountTag }) { d1AnalyticsAdaptiveGroups(limit: 10, filter: { date_geq: $start, date_leq: $end, databaseId: $databaseId }, orderBy: [date_DESC]) { sum { rowsRead rowsWritten } dimensions { date } } } } }",
+                variables: { accountTag: $accountTag, start: $start, end: $end, databaseId: $databaseId }
+              }')")
+
+          TODAY_READS=$(echo "$RESPONSE" | jq -r --arg d "$TODAY" \
+            '[.data.viewer.accounts[0].d1AnalyticsAdaptiveGroups[]? | select(.dimensions.date == $d) | .sum.rowsRead] | first // 0')
+          YDAY_READS=$(echo "$RESPONSE" | jq -r --arg d "$YESTERDAY" \
+            '[.data.viewer.accounts[0].d1AnalyticsAdaptiveGroups[]? | select(.dimensions.date == $d) | .sum.rowsRead] | first // 0')
+          TODAY_WRITES=$(echo "$RESPONSE" | jq -r --arg d "$TODAY" \
+            '[.data.viewer.accounts[0].d1AnalyticsAdaptiveGroups[]? | select(.dimensions.date == $d) | .sum.rowsWritten] | first // 0')
+          YDAY_WRITES=$(echo "$RESPONSE" | jq -r --arg d "$YESTERDAY" \
+            '[.data.viewer.accounts[0].d1AnalyticsAdaptiveGroups[]? | select(.dimensions.date == $d) | .sum.rowsWritten] | first // 0')
+
+          echo "D1 rows read   — yesterday: ${YDAY_READS} / today: ${TODAY_READS} (quota ${READ_QUOTA}/día)"
+          echo "D1 rows written — yesterday: ${YDAY_WRITES} / today: ${TODAY_WRITES} (quota ${WRITE_QUOTA}/día)"
+
+          # ---------------- rows read ----------------
+          if [ "$TODAY_READS" -ge "$READ_QUOTA" ]; then
+            echo "::error::CRITICAL: ${TODAY_READS} rows leídos hoy = cuota diaria agotada. El sitio ya está en el muro free-tier: revisar tráfico/cache o subir a Workers Paid."
+            STATUS=1
+          elif [ "$YDAY_READS" -gt "$READ_QUOTA" ]; then
+            echo "::error::Ayer terminó con ${YDAY_READS} rows leídos (> ${READ_QUOTA}): hubo un día de outage."
+            STATUS=1
+          elif [ "$TODAY_READS" -ge "$READ_WARN" ]; then
+            echo "::warning::${TODAY_READS} rows leídos hoy (>= 90% de ${READ_QUOTA}). Ruta a agotar la cuota: revisar queries con SCAN y el TTL del cache edge."
+          fi
+
+          # ---------------- rows written ----------------
+          if [ "$TODAY_WRITES" -ge "$WRITE_QUOTA" ]; then
+            echo "::error::CRITICAL: ${TODAY_WRITES} rows escritos hoy = cuota diaria de escrituras agotada (escrituras se cortan hasta 00:00 UTC). Revisar syncs/upserts ciegos."
+            STATUS=1
+          elif [ "$YDAY_WRITES" -gt "$WRITE_QUOTA" ]; then
+            echo "::error::Ayer terminó con ${YDAY_WRITES} rows escritos (> ${WRITE_QUOTA})."
+            STATUS=1
+          elif [ "$TODAY_WRITES" -ge "$WRITE_WARN" ]; then
+            echo "::warning::${TODAY_WRITES} rows escritos hoy (>= 90% de ${WRITE_QUOTA}). Revisar que los upserts hagan diff previo."
+          fi
+
+          if [ "$STATUS" -eq 0 ]; then
+            echo "OK: dentro de cuota (advertencias no frenan el run)."
+          fi
+          exit "$STATUS"
