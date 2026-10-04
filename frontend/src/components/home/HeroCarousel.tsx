@@ -47,31 +47,32 @@ export default function HeroCarousel() {
   const [timer, setTimer] = useState(2328);
 
   useEffect(() => {
-    const initSlick = async () => {
+    const initSlick = () => {
       if (typeof window !== 'undefined') {
-        // Use require() or a dynamic import that Vite can handle for CJS
-        // To solve the "failed to resolve import jquery" error,
-        // we ensure jQuery is available on the window object before slick-carousel.
         try {
-          const jQuery = await import('jquery');
-          const $ = jQuery.default || jQuery;
-          window.$ = window.jQuery = $;
+          const $ = window.jQuery || (window as any).$;
 
-          // Import slick-carousel dynamically
-          await import('slick-carousel');
+          if (!$) {
+            console.error('jQuery is not loaded. Slick Carousel cannot initialize.');
+            return;
+          }
 
           if (window.$('.hero-slider').length) {
-            window.$('.hero-slider').slick({
-              dots: true,
-              infinite: true,
-              speed: 500,
-              slidesToShow: 1,
-              slidesToScroll: 1,
-              autoplay: true,
-              autoplaySpeed: 5000,
-              arrows: false,
-              fade: true,
-            });
+            if ($.fn && $.fn.slick) {
+              window.$('.hero-slider').slick({
+                dots: true,
+                infinite: true,
+                speed: 500,
+                slidesToShow: 1,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 5000,
+                arrows: false,
+                fade: true,
+              });
+            } else {
+              console.error('Slick is not loaded on jQuery.fn.slick');
+            }
           }
         } catch (e) {
           console.error('Failed to initialize Slick Carousel:', e);
@@ -79,7 +80,7 @@ export default function HeroCarousel() {
       }
     };
 
-    initSlick();
+    const timerId = setTimeout(initSlick, 100);
 
     const interval = setInterval(() => {
       setTimer((prev) => (prev > 0 ? prev - 1 : 0));
@@ -87,8 +88,11 @@ export default function HeroCarousel() {
 
     return () => {
       clearInterval(interval);
+      clearTimeout(timerId);
       if (typeof window !== 'undefined' && window.$ && window.$('.hero-slider').length) {
-        window.$('.hero-slider').slick('unslick');
+        try {
+          window.$('.hero-slider').slick('unslick');
+        } catch(e) {}
       }
     };
   }, []);
