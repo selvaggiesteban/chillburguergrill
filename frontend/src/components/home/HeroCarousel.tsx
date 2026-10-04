@@ -49,22 +49,33 @@ export default function HeroCarousel() {
   useEffect(() => {
     const initSlick = async () => {
       if (typeof window !== 'undefined') {
-        const jQuery = await import('jquery');
-        window.$ = window.jQuery = jQuery;
-        await import('slick-carousel');
+        // Use require() or a dynamic import that Vite can handle for CJS
+        // To solve the "failed to resolve import jquery" error,
+        // we ensure jQuery is available on the window object before slick-carousel.
+        try {
+          const jQuery = await import('jquery');
+          const $ = jQuery.default || jQuery;
+          window.$ = window.jQuery = $;
 
-        // We use (window as any) to avoid TS errors with the jQuery plugin
-        (window as any).$('.hero-slider').slick({
-          dots: true,
-          infinite: true,
-          speed: 500,
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          autoplay: true,
-          autoplaySpeed: 5000,
-          arrows: false,
-          fade: true,
-        });
+          // Import slick-carousel dynamically
+          await import('slick-carousel');
+
+          if (window.$('.hero-slider').length) {
+            window.$('.hero-slider').slick({
+              dots: true,
+              infinite: true,
+              speed: 500,
+              slidesToShow: 1,
+              slidesToScroll: 1,
+              autoplay: true,
+              autoplaySpeed: 5000,
+              arrows: false,
+              fade: true,
+            });
+          }
+        } catch (e) {
+          console.error('Failed to initialize Slick Carousel:', e);
+        }
       }
     };
 
@@ -76,8 +87,8 @@ export default function HeroCarousel() {
 
     return () => {
       clearInterval(interval);
-      if (typeof window !== 'undefined' && (window as any).$('.hero-slider').length) {
-        (window as any).$('.hero-slider').slick('unslick');
+      if (typeof window !== 'undefined' && window.$ && window.$('.hero-slider').length) {
+        window.$('.hero-slider').slick('unslick');
       }
     };
   }, []);

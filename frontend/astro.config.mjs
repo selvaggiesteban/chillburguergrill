@@ -18,5 +18,8 @@ export default defineConfig({
   vite: {
     // Namespace de cache edge por commit: cada deploy arranca con cache vacía.
     define: { __BUILD_ID__: JSON.stringify(buildId.slice(0, 12)) },
+    ssr: {
+      noExternal: ['jquery', 'slick-carousel'],
+    },
   },
 });

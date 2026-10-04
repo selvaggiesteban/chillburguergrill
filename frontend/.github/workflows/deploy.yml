@@ -18,8 +18,7 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
-          # We omit cache-dependency-path here to avoid the 'paths were not resolved' error
-          # that occurs when the lockfile is in a subdirectory.
+          cache-dependency-path: frontend/package-lock.json
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
       - name: Build
