@@ -3,8 +3,12 @@ import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import cloudflare from '@astrojs/cloudflare';
 
-const buildId =
-  process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || process.env.DEPLOY_SHA || 'local';
+// Id único por build: si no hay commit (build local), igual cambia entre builds
+// para que un deploy manual también arranque con la cache vacía.
+const commit = process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || process.env.DEPLOY_SHA;
+const buildId = commit
+  ? commit.slice(0, 12)
+  : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 export default defineConfig({
   output: 'server',
