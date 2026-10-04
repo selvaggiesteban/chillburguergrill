@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProductCard from '../components/ProductCard.astro';
-import HeroCarousel from '../components/home/HeroCarousel';
+import HeroCarousel from '../components/home/HeroCarousel.tsx';
 import { listProducts, listCategories, getActivePromotions } from '../lib/d1';
 
 const db = Astro.locals.runtime.env.DB;
