@@ -48,6 +48,9 @@ export type Extra = {
   price: number;
   active: number;
   orden: number;
+  group_id?: string | null;
+  is_required?: number;
+  max_selection?: number | null;
 };
 
 export type ComboItem = {

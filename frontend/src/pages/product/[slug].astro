@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductDetailView from '../../components/product/ProductDetailView';
+import { getProductBySlug, listExtrasForProduct } from '../../lib/d1';
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect('/menu');
+
+const db = Astro.locals.runtime.env.DB;
+const product = await getProductBySlug(db, slug);
+
+if (!product) return Astro.redirect('/menu');
+
+const extras = await listExtrasForProduct(db, product.id);
+---
+
+<BaseLayout title={product.name} description={product.description}>
+  <ProductDetailView 
+    client:load 
+    product={product} 
+    extras={extras} 
+    basePrice={product.price} 
+  />
+</BaseLayout>
