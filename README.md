@@ -39,10 +39,10 @@
 - **Connectivity**: Cloudflare Edge Network $\rightarrow$ D1/R2/KV via internal bindings
 
 ### 🌐 SEO & Web Standards
-- **Canonical URL**: `https://chillburguergrill.com`
+- **Canonical URL**: `https://chillburguergrill.pages.dev`
 - **Sitemap**: `/sitemap-index.xml`
 - **Open Graph**: `og:site_name` (Chill Burguer Grill), `og:type` (website), `og:image` (/images/og.png), `og:locale` (es_AR)
-- **Robots.txt**: User-agent: * Allow: / | Sitemap: https://chillburguergrill.com/sitemap-index.xml
+- **Robots.txt**: User-agent: * Allow: / | Sitemap: https://chillburguergrill.pages.dev/sitemap-index.xml
 - **SEO**: Semantic HTML5, Dynamic Meta-tags per category, JSON-LD Schema.
 
 ### 📦 Development & Versioning
