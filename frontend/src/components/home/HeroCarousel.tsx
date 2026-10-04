@@ -28,7 +28,7 @@ const BANNERS: Banner[] = [
     id: 2,
     title: 'COMBO BIGGIE',
     subtitle: '2x1 los jueves de 18hs a 22hs',
-    image: '/images/menu/combos.svg',
+    image: '/images/menu/default.svg',
     ctaText: 'Ver combos',
     ctaLink: '/menu#combos',
     badge: 'TOP',
