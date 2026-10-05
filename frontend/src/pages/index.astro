@@ -14,21 +14,8 @@ const [{ rows: featured }, categories, promos] = await Promise.all([
 ---
 
 <BaseLayout>
+  <h1 class="sr-only">Chill Burguer Grill — Hamburguesas smash en Lanús</h1>
   <HeroCarousel />
-
-  <section class="wrap py-16 text-center sm:py-24">
-    <p class="mb-3 text-sm font-bold uppercase tracking-[0.3em] text-brand-600">La mejor experiencia smash</p>
-    <h1 class="mx-auto max-w-3xl font-display text-5xl uppercase leading-none tracking-wide text-ink-800 sm:text-7xl">
-      Chill Burguer Grill
-    </h1>
-    <p class="mx-auto mt-4 max-w-xl text-lg text-ink-800/60">
-      Hamburguesas smash, guarniciones y bebidas. Pedí online con delivery o retiro en local.
-    </p>
-    <div class="mt-7 flex flex-wrap justify-center gap-3">
-      <a href="/menu" class="btn-primary px-7 py-3">Ver la carta</a>
-      <a href="/contacto" class="btn-secondary px-7 py-3">Contactanos</a>
-    </div>
-  </section>
 
   {
     categories.length > 0 && (
