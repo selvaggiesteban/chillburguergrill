@@ -133,24 +133,26 @@ const FILTERS = [
     {
       groups.length > 0 && (
         <nav
-          class="sticky top-16 z-30 -mx-4 mb-8 border-b border-ink-800/10 bg-paper/95 px-4 backdrop-blur sm:-mx-6 sm:px-6"
+          class="sticky top-16 z-30 mb-8 border-b border-ink-800/10 bg-paper/95 backdrop-blur"
           aria-label="Secciones de la carta"
         >
-          <div class="flex gap-6 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {groups.map((group, i) => (
-              <a
-                href={`#${group.cat.slug}`}
-                data-tab={group.cat.slug}
-                class:list={[
-                  'whitespace-nowrap border-b-2 pb-1 text-sm font-bold uppercase tracking-wide transition',
-                  i === 0
-                    ? 'border-brand-600 text-brand-600'
-                    : 'border-transparent text-ink-800/50 hover:text-ink-800',
-                ]}
-              >
-                {group.cat.name}
-              </a>
-            ))}
+          <div class="wrap">
+            <div class="flex gap-6 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {groups.map((group, i) => (
+                <a
+                  href={`#${group.cat.slug}`}
+                  data-tab={group.cat.slug}
+                  class:list={[
+                    'whitespace-nowrap border-b-2 pb-1 text-sm font-bold uppercase tracking-wide transition',
+                    i === 0
+                      ? 'border-brand-600 text-brand-600'
+                      : 'border-transparent text-ink-800/50 hover:text-ink-800',
+                  ]}
+                >
+                  {group.cat.name}
+                </a>
+              ))}
+            </div>
           </div>
         </nav>
       )
