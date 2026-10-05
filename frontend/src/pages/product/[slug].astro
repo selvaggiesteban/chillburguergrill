@@ -1,31 +1,8 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import ProductDetailView from '../../components/product/ProductDetailView';
-import { getProductBySlug, listExtrasForProduct, getActivePromotions, bestPromoFor } from '../../lib/d1';
-
+// Ruta legacy (pre-español): redirige permanentemente a /producto/<slug>.
 const { slug } = Astro.params;
-if (!slug) return Astro.redirect('/menu');
-
-const db = Astro.locals.runtime.env.DB;
-const product = await getProductBySlug(db, slug);
-
-if (!product) return Astro.redirect('/menu');
-
-const [extras, promos] = await Promise.all([
-  listExtrasForProduct(db, product.id),
-  getActivePromotions(db, new Date().toISOString()),
-]);
-
-const promo = bestPromoFor(promos, product.id, product.category_id, product.price);
+return new Response(null, {
+  status: 308,
+  headers: { Location: `/producto/${encodeURIComponent(slug ?? '')}` },
+});
 ---
-
-<BaseLayout title={product.name} description={product.description}>
-  <ProductDetailView
-    client:load
-    product={product}
-    extras={extras}
-    basePrice={promo.promoPrice}
-    originalPrice={product.price}
-    discountPct={promo.discountPct}
-  />
-</BaseLayout>
