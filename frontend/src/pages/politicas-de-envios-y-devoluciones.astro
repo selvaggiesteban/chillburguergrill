@@ -1,0 +1,281 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadPublicConfig, formatSchedule, whatsappLink } from '../lib/public-config';
+import { getConfig, type DeliveryConfig, type BankConfig } from '../lib/d1';
+import { formatPrice } from '../lib/utils';
+
+const db = Astro.locals.runtime.env.DB;
+
+const [{ contact, hours }, delivery, bank] = await Promise.all([
+  loadPublicConfig(Astro.locals),
+  getConfig<DeliveryConfig>(db, 'delivery'),
+  getConfig<BankConfig>(db, 'bank'),
+]);
+
+const schedule = formatSchedule(hours);
+const zones = delivery?.zones ?? [];
+const freeFrom = Number(delivery?.free_from) || 0;
+const address = contact?.address?.trim() ?? '';
+const addressHref = contact?.address_url?.trim() || null;
+const whatsappHref = whatsappLink(contact?.whatsapp);
+const email = contact?.email?.trim() ?? '';
+
+const sections = [
+  { id: 'entrega', label: 'Cobertura y entrega' },
+  { id: 'tiempos', label: 'Tiempos de preparación' },
+  { id: 'costos', label: 'Costos y pagos' },
+  { id: 'recepcion', label: 'Recepción' },
+  { id: 'cambios', label: 'Cambios y devoluciones' },
+  { id: 'reclamos', label: 'Reclamos' },
+];
+---
+
+<BaseLayout
+  title="Políticas de Envíos y Devoluciones — Chill Burguer Grill"
+  description="Cómo entregamos tus pedidos, costos de envío por zona, medios de pago, y qué hacemos si algo llega mal, faltante o equivocado."
+>
+  <div class="wrap py-12">
+    <header class="mb-8">
+      <h1 class="section-title">Políticas de Envíos y Devoluciones</h1>
+      <p class="mt-3 max-w-3xl text-ink-800/70">
+        Queremos que sepas exactamente cómo llega tu pedido, cuánto cuesta el envío y qué
+        hacemos si algo no sale como esperabas. Estas condiciones aplican a todos los pedidos
+        realizados en chillburguergrill.pages.dev.
+      </p>
+    </header>
+
+    <nav class="mb-10 flex flex-wrap gap-2" aria-label="Secciones">
+      {
+        sections.map((s) => (
+          <a href={`#${s.id}`} class="chip">
+            {s.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="mx-auto flex max-w-3xl flex-col gap-10">
+      <section id="entrega" class="scroll-mt-28">
+        <h2 class="mb-3 font-display text-[24px] uppercase leading-none tracking-wide text-ink-900">
+          I. Cobertura y modalidades de entrega
+        </h2>
+        <div class="space-y-3 text-ink-800/75">
+          <p>
+            Trabajamos con dos modalidades: <strong>delivery</strong> a domicilio y
+            <strong>retiro en el local</strong>.
+          </p>
+          <p>
+            <strong>Delivery:</strong> entregamos dentro de las zonas de cobertura listadas
+            más abajo. Para otras localidades, consultanos por WhatsApp: si podemos llegar,
+            coordinamos el envío a mano.
+          </p>
+          {
+            zones.length > 0 && (
+              <ul class="card divide-y divide-ink-800/10">
+                {zones.map((zone) => (
+                  <li class="flex items-center justify-between gap-4 px-5 py-3 text-sm">
+                    <span class="font-semibold text-ink-800">{zone.name}</span>
+                    <span class="text-ink-800/60">{formatPrice(zone.cost)}</span>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+          <p>
+            <strong>Retiro en el local:</strong>{
+              address && (
+                <>
+                  {' '}
+                  en{' '}
+                  {addressHref ? (
+                    <a href={addressHref} target="_blank" rel="noopener noreferrer" class="font-semibold text-brand-600 hover:underline">
+                      {address}
+                    </a>
+                  ) : (
+                    <span class="font-semibold">{address}</span>
+                  )}
+                </>
+              )
+            }
+            , dentro del horario de atención ({schedule}).
+          </p>
+        </div>
+      </section>
+
+      <section id="tiempos" class="scroll-mt-28">
+        <h2 class="mb-3 font-display text-[24px] uppercase leading-none tracking-wide text-ink-900">
+          II. Preparación y tiempos
+        </h2>
+        <div class="space-y-3 text-ink-800/75">
+          <p>
+            Todo se cocina <strong>al momento del pedido</strong>: no despachamos productos
+            ya preparados ni almacenados. Por eso el tiempo de entrega depende de la cocina y
+            de la zona, no de un depósito.
+          </p>
+          <ul class="ml-5 list-disc space-y-1.5">
+            <li>
+              Los pedidos se toman y preparan durante el horario de atención: {schedule}.
+            </li>
+            <li>
+              Un pedido realizado fuera de ese horario se gestiona apenas abrimos, en orden de
+              llegada.
+            </li>
+            <li>
+              El tiempo estimado de entrega suele estar entre 30 y 60 minutos según la zona y
+              el movimiento de la noche. Si hay demora, te avisamos por WhatsApp.
+            </li>
+            <li>
+              Los últimos pedidos se toman al cierre de cocina; una vez confirmado, el pedido
+              entra en preparación.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="costos" class="scroll-mt-28">
+        <h2 class="mb-3 font-display text-[24px] uppercase leading-none tracking-wide text-ink-900">
+          III. Costos de envío y medios de pago
+        </h2>
+        <div class="space-y-3 text-ink-800/75">
+          <p>
+            El costo del envío se calcula por zona al finalizar el pedido y se muestra antes
+            de confirmar.{
+              freeFrom > 0 && (
+                <>
+                  {' '}
+                  Los pedidos desde {formatPrice(freeFrom)} tienen envío sin costo.
+                </>
+              )
+            }
+          </p>
+          <p>Medios de pago aceptados:</p>
+          <ul class="ml-5 list-disc space-y-1.5">
+            <li>
+              <strong>MercadoPago:</strong> tarjetas y billeteras virtuales, con pago
+              confirmado al instante.
+            </li>
+            <li>
+              <strong>Transferencia bancaria:</strong> 10 % de descuento sobre el subtotal de
+              productos.{bank && bank.cbu && <> CVU <span class="font-mono">{bank.cbu}</span> — titular {bank.titular}.</>}
+            </li>
+            <li><strong>Efectivo al recibir:</strong> 10 % de descuento sobre el subtotal de productos.</li>
+          </ul>
+          <p class="text-sm text-ink-800/60">
+            El descuento de medios de pago no aplica sobre el costo de envío. Las promociones
+            de la carta (% OFF) se aplican antes que el descuento de medio de pago.
+          </p>
+        </div>
+      </section>
+
+      <section id="recepcion" class="scroll-mt-28">
+        <h2 class="mb-3 font-display text-[24px] uppercase leading-none tracking-wide text-ink-900">
+          IV. Recepción y verificación del pedido
+        </h2>
+        <div class="space-y-3 text-ink-800/75">
+          <p>
+            Al recibir el pedido, revisá que esté completo antes de que el repartidor se retire
+            o de que pase el tiempo de entrega. Comprobá que:
+          </p>
+          <ul class="ml-5 list-disc space-y-1.5">
+            <li>los productos correspondan a lo que pediste;</li>
+            <li>las cantidades sean las correctas;</li>
+            <li>los envases estén cerrados, sin roturas ni derrames;</li>
+            <li>la comida llegue caliente y en condiciones.</li>
+          </ul>
+          <p>
+            Si algo no cierra, sacale una foto al pedido y al empaque antes de moverlo y
+            escribinos de inmediato: cuanto antes avises, más rápido lo resolvemos.
+          </p>
+        </div>
+      </section>
+
+      <section id="cambios" class="scroll-mt-28">
+        <h2 class="mb-3 font-display text-[24px] uppercase leading-none tracking-wide text-ink-900">
+          V. Cambios, devoluciones y reembolsos
+        </h2>
+        <div class="space-y-3 text-ink-800/75">
+          <p>
+            <strong>Cancelación sin costo.</strong> Podés cancelar el pedido sin cargo mientras
+            no se haya iniciado la preparación en cocina. Una vez que empieza a cocinarse, el
+            pedido ya no se puede cancelar.
+          </p>
+          <p>
+            <strong>Por tratarse de alimentos preparados al momento del pedido</strong> y por
+            su naturaleza perecedera, no corresponde el derecho de arrepentimiento una vez
+            entregado el producto.
+          </p>
+          <p>
+            <strong>Cuando el problema es nuestro, lo asumimos.</strong> Si llega un producto
+            distinto al pedido, faltan ítems, el envase está roto o el producto viene en mal
+            estado, elegí una de estas soluciones:
+          </p>
+          <ul class="ml-5 list-disc space-y-1.5">
+            <li>reenvío del ítem faltante o incorrecto, sin costo;</li>
+            <li>crédito por el valor del ítem para tu próximo pedido;</li>
+            <li>reintegro del importe por el mismo medio de pago.</li>
+          </ul>
+          <p>
+            Para ello, comunicate dentro de las <strong>48 horas</strong> de recibido el pedido
+            y envianos fotos del producto y del empaque.
+          </p>
+          <p>
+            <strong>Reembolsos.</strong> Cuando corresponde reintegro, se devuelve el importe
+            de los ítems afectados (no el costo de envío, salvo que el error haya sido total).
+            MercadoPago devuelve el dinero en el plazo de su billetera o tarjeta; las
+            transferencias se acreditan en hasta 5 días hábiles en la cuenta que nos indiques.
+          </p>
+          <p>
+            Si un producto se agota después de tu compra, te avisamos de inmediato y puedes
+            cambiarlo por otro o recibir el reintegro íntegro.
+          </p>
+        </div>
+      </section>
+
+      <section id="reclamos" class="scroll-mt-28">
+        <h2 class="mb-3 font-display text-[24px] uppercase leading-none tracking-wide text-ink-900">
+          VI. Reclamos y consultas
+        </h2>
+        <div class="space-y-3 text-ink-800/75">
+          <p>
+            Para cualquier reclamo o consulta sobre un pedido, usá el canal que te quede más
+            cómodo y siempre con tu número o ID de pedido a mano:
+          </p>
+          <div class="card space-y-2 p-5 text-sm">
+            {
+              whatsappHref && (
+                <p>
+                  <span class="font-bold text-ink-800">WhatsApp:</span>{' '}
+                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer" class="text-brand-600 hover:underline">
+                    {contact?.whatsapp}
+                  </a>
+                </p>
+              )
+            }
+            {
+              email && (
+                <p>
+                  <span class="font-bold text-ink-800">Email:</span>{' '}
+                  <a href={`mailto:${email}`} class="text-brand-600 hover:underline">
+                    {email}
+                  </a>
+                </p>
+              )
+            }
+            <p>
+              <span class="font-bold text-ink-800">Horario de atención:</span> {schedule}
+            </p>
+          </div>
+          <p class="text-sm text-ink-800/60">
+            Guardá el comprobante del pedido hasta verificar que llegó completo: nos ayuda a
+            resolver cualquier inconveniente de forma rápida y objetiva.
+          </p>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-3 border-t border-ink-800/10 pt-8">
+        <a href="/menu" class="btn-primary">Ver la carta</a>
+        <a href="/contacto" class="btn-secondary">Contacto</a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
