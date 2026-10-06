@@ -6,10 +6,16 @@ const e164 = whatsappE164(contact?.whatsapp);
 
 const message = encodeURIComponent('Hola Chill Burguer Grill, me gustaría hacer un pedido');
 const whatsappUrl = e164 ? `https://wa.me/${e164.slice(1)}?text=${message}` : null;
+
+// En páginas con barra fija inferior (producto, checkout, pedido) el botón
+// flotante tapa el CTA principal: no se renderiza.
+const path = Astro.url.pathname;
+const hideOnFixedBar = /^\/(checkout|producto|pedido|admin)/.test(path);
+const visible = whatsappUrl && !hideOnFixedBar;
 ---
 
 {
-  whatsappUrl && (
+  visible && (
     <a
       href={whatsappUrl}
       target="_blank"
