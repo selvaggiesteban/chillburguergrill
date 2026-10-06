@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { Product, Extra } from '../../lib/d1';
 import { addToCart } from '../../lib/cart';
 import { formatPrice, parseImages, coverOf } from '../../lib/utils';
+import { isFavorite, toggleFavorite } from '../../lib/favorites';
 
 interface ModifierGroup {
   id: string;
@@ -29,10 +30,31 @@ export default function ProductDetailView({
   const [quantity, setQuantity] = useState(1);
   const [selections, setSelections] = useState<Record<string, number | number[]>>({});
   const [added, setAdded] = useState(false);
+  const [favorite, setFavorite] = useState(false);
 
   const image = coverOf(parseImages(product.images), product.cover_index);
   const soldOut = product.disponible === 0;
   const hasPromo = discountPct > 0;
+
+  // El estado de favoritos vive en localStorage: se lee en el cliente para
+  // no divergir del HTML del servidor.
+  useEffect(() => {
+    setFavorite(isFavorite(product.id));
+  }, [product.id]);
+
+  const goBack = () => {
+    const ref = document.referrer;
+    let sameOrigin = false;
+    try {
+      sameOrigin = !!ref && new URL(ref).origin === window.location.origin;
+    } catch {
+      sameOrigin = false;
+    }
+    if (sameOrigin) window.history.back();
+    else window.location.href = '/menu';
+  };
+
+  const onToggleFavorite = () => setFavorite(toggleFavorite(product.id));
 
   // Virtual Grouping Logic
   const modifierGroups = useMemo((): ModifierGroup[] => {
@@ -116,20 +138,40 @@ export default function ProductDetailView({
 
   return (
     <div className="relative flex flex-col min-h-screen bg-white pb-28">
-      {/* Floating Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 backdrop-blur-md bg-white/70 border-b border-ink-800/5">
-        <button onClick={() => window.history.back()} className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-ink-900">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <h1 className="text-sm font-bold truncate max-w-[60%] text-center">{product.name}</h1>
-        <button className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-ink-900">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-        </button>
-      </header>
-
       {/* Hero Section */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-zinc-900 pt-14">
+      <div className="relative w-full aspect-[4/3] overflow-hidden bg-zinc-900">
         <img src={image} alt={product.name} className="w-full h-full object-cover" />
+
+        {/* Acciones sobre la imagen destacada: transparentes y con scroll */}
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between p-4">
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label="Volver"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink-900 shadow-md backdrop-blur transition hover:bg-white active:scale-95"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <button
+            type="button"
+            onClick={onToggleFavorite}
+            aria-pressed={favorite}
+            aria-label={favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink-900 shadow-md backdrop-blur transition hover:bg-white active:scale-95"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+              aria-hidden="true"
+              className={favorite ? 'fill-rose-500 stroke-rose-500' : 'fill-transparent stroke-current'}
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+        </div>
+
         <div className="absolute bottom-0 left-0 right-0 flex flex-wrap items-center gap-2 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
           {hasPromo && (
             <span className="rounded-full bg-[#F2AB27] px-2.5 py-1 text-xs font-bold text-ink-900">
@@ -151,7 +193,7 @@ export default function ProductDetailView({
 
       {/* Product Info */}
       <section className="p-4 flex flex-col gap-3">
-        <h2 className="text-2xl font-extrabold leading-tight text-ink-900">{product.name}</h2>
+        <h1 className="text-2xl font-extrabold leading-tight text-ink-900">{product.name}</h1>
         <p className="text-sm text-zinc-500 leading-relaxed">{product.description}</p>
         <div className="mt-2 flex items-baseline gap-3">
           {hasPromo && (
