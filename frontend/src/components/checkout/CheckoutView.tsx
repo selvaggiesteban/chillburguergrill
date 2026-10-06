@@ -31,23 +31,49 @@ const PAYMENT_LABELS: Record<PaymentMethod, { title: string; hint: string; icon:
   },
 };
 
-function SummaryLine({ item }: { item: CartItem }) {
+/**
+ * Fila de producto igual a las de /menu (tarjeta, título, precio e imagen a la
+ * derecha) pero sin el botón `+`: en el checkout ya están agregados.
+ */
+function CartRow({ item }: { item: CartItem }) {
+  const unit = unitPriceOf(item);
+  const lineTotal = unit * item.quantity;
+  const extrasText = item.extras.map((e) => e.name).join(' · ');
+
   return (
-    <li className="flex items-start justify-between gap-3 text-sm">
-      <span className="min-w-0">
-        <span className="font-semibold text-ink-800">
-          {item.quantity}× {item.name}
-        </span>
-        {item.extras.length > 0 && (
-          <span className="block truncate text-xs text-ink-800/50">
-            {item.extras.map((e) => e.name).join(' · ')}
+    <article className="card relative flex items-stretch gap-4 p-3">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 py-1 pr-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-display text-lg uppercase leading-tight tracking-wide text-ink-900">
+            {item.name}
+          </h3>
+          <span className="inline-flex items-center rounded-md bg-brand-100 px-1.5 py-0.5 text-[11px] font-bold leading-none text-brand-700">
+            {item.quantity}×
           </span>
-        )}
-      </span>
-      <span className="shrink-0 font-medium text-ink-800/70">
-        {formatPrice(unitPriceOf(item) * item.quantity)}
-      </span>
-    </li>
+        </div>
+        {extrasText && <p className="line-clamp-2 text-sm text-ink-800/60">{extrasText}</p>}
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="font-display text-xl leading-none text-brand-600">
+            {formatPrice(lineTotal)}
+          </span>
+          {item.quantity > 1 && (
+            <span className="text-xs text-ink-800/40">{formatPrice(unit)} c/u</span>
+          )}
+        </div>
+      </div>
+
+      <div className="relative w-28 shrink-0 self-center sm:w-32">
+        <img
+          src={item.image || '/images/menu/default.svg'}
+          alt=""
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = '/images/menu/default.svg';
+          }}
+          className="h-28 w-28 rounded-xl object-cover sm:h-32 sm:w-32"
+        />
+      </div>
+    </article>
   );
 }
 
@@ -132,14 +158,20 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_22rem]">
-      <div className="space-y-6">
-        {error && (
-          <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-            {error}
-          </div>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <section aria-label="Productos del pedido" className="flex flex-col gap-4">
+        {items.map((item) => (
+          <CartRow key={item.key} item={item} />
+        ))}
+      </section>
 
+      {error && (
+        <div role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="space-y-6">
         <section className="card p-5">
           <h2 className="mb-4 font-display text-xl uppercase text-ink-800">Tus datos</h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -289,40 +321,15 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
         </section>
       </div>
 
-      <aside className="lg:sticky lg:top-24 lg:h-fit">
-        <div className="card p-5">
-          <h2 className="mb-4 font-display text-xl uppercase text-ink-800">Resumen</h2>
-          <ul className="space-y-3">
-            {items.map((item) => (
-              <SummaryLine key={item.key} item={item} />
-            ))}
-          </ul>
-
-          <dl className="mt-4 space-y-2 border-t border-ink-800/10 pt-4 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-ink-800/60">Subtotal</dt>
-              <dd className="font-medium">{formatPrice(subtotal)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-800/60">{fulfillment === 'delivery' ? 'Envío' : 'Retiro'}</dt>
-              <dd className="font-medium">
-                {fulfillment === 'delivery' ? (deliveryCost > 0 ? formatPrice(deliveryCost) : 'Gratis') : 'Sin costo'}
-              </dd>
-            </div>
-            <div className="flex items-end justify-between border-t border-ink-800/10 pt-3">
-              <dt className="font-bold text-ink-800">Total</dt>
-              <dd className="font-display text-3xl text-brand-600">{formatPrice(total)}</dd>
-            </div>
-          </dl>
-
-          <button type="submit" disabled={submitting} className="btn-primary mt-5 w-full py-3 text-lg">
-            {submitting ? 'Procesando…' : `Confirmar pedido · ${formatPrice(total)}`}
-          </button>
-          <p className="mt-3 text-center text-xs text-ink-800/40">
-            Al confirmar aceptás los términos del pedido. Te contactamos por WhatsApp ante cualquier cambio.
-          </p>
-        </div>
-      </aside>
+      {/* Barra flotante de compra (estilo footer de la página de producto) */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink-800/10 bg-white/95 p-4 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur">
+        <p className="mb-2 text-center text-[11px] leading-tight text-ink-800/40">
+          Al confirmar aceptás los términos del pedido. Te contactamos por WhatsApp ante cualquier cambio.
+        </p>
+        <button type="submit" disabled={submitting} className="btn-primary w-full py-4 text-lg">
+          {submitting ? 'Procesando…' : `Comprar - ${formatPrice(total)}`}
+        </button>
+      </div>
     </form>
   );
 }
