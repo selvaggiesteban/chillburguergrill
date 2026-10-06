@@ -116,6 +116,7 @@ export type OrderItemInput = {
   unit_price: number;
   subtotal: number;
   extras_json: string;
+  customization_id?: number | null;
 };
 
 export type OrderInput = {
@@ -431,6 +432,119 @@ export async function deleteExtra(db: DB, id: number): Promise<void> {
 }
 
 // ============================================================
+// Personalizaciones y adicionales
+// ============================================================
+
+export type Customization = {
+  id: number;
+  product_id: number;
+  name: string;
+  ingredients: string; // JSON array de ingredientes
+  recommended: number;
+  active: number;
+  orden: number;
+  sales?: number;
+};
+
+export type AdicionalOption = {
+  id: number;
+  name: string;
+  price: number;
+  source: 'product' | 'extra';
+};
+
+export type AdicionalSection = {
+  required: boolean;
+  options: AdicionalOption[];
+};
+
+/**
+ * Offsets para ids sintéticos de adicionales que son productos (para no
+ * chocar con los ids reales de la tabla extras dentro del carrito).
+ */
+export const ADICIONAL_PRODUCT_OFFSET = 1000;
+
+/**
+ * Id sintético que marca "Personalización más popular" en el carrito. El
+ * servidor lo resuelve contra `customizations` (deriva nombre, precio 0 y
+ * registration de ventas) — nunca se confía en datos del cliente.
+ */
+export const CUSTOM_POPULAR_EXTRA_ID = -9000;
+
+/**
+ * Sección "Selecciona tu adicional" según el producto:
+ * - Hamburguesas → todas las guarniciones y bebidas visibles (requerido).
+ * - Entradas (nuggets/aros) → extras del grupo `adicionales` (ej: 5+5).
+ */
+export async function listAdicionalSection(
+  db: DB,
+  product: Pick<Product, 'id' | 'slug' | 'category_id'>
+): Promise<AdicionalSection> {
+  const { results: cat } = await db
+    .prepare('SELECT slug FROM categories WHERE id = ?')
+    .bind(product.category_id)
+    .all<{ slug: string }>();
+  const categorySlug = cat?.[0]?.slug;
+
+  if (categorySlug === 'hamburguesas') {
+    const { results } = await db
+      .prepare(
+        `SELECT p.id, p.name, p.price
+         FROM products p
+         JOIN categories c ON c.id = p.category_id
+         WHERE c.slug IN ('papas-guarniciones', 'bebidas')
+           AND p.visible = 1 AND p.disponible = 1
+         ORDER BY CASE c.slug WHEN 'papas-guarniciones' THEN 0 ELSE 1 END, p.orden ASC, p.id ASC`
+      )
+      .all<{ id: number; name: string; price: number }>();
+    const options = (results ?? []).map((r) => ({
+      id: ADICIONAL_PRODUCT_OFFSET + r.id,
+      name: r.name,
+      price: r.price,
+      source: 'product' as const,
+    }));
+    return { required: options.length > 0, options };
+  }
+
+  if (product.slug === 'nuggets' || product.slug === 'aros-de-cebolla') {
+    const { results } = await db
+      .prepare(
+        `SELECT id, name, price FROM extras
+         WHERE product_id = ? AND active = 1 AND group_id = 'adicionales'
+         ORDER BY orden ASC, id ASC`
+      )
+      .bind(product.id)
+      .all<{ id: number; name: string; price: number }>();
+    return {
+      required: false,
+      options: (results ?? []).map((r) => ({ ...r, source: 'extra' as const })),
+    };
+  }
+
+  return { required: false, options: [] };
+}
+
+/**
+ * Personalización más popular de un producto: prioriza el flag manual
+ * (`recommended`) y desempata por ventas confirmadas (order_items).
+ */
+export async function getPopularCustomization(db: DB, productId: number): Promise<Customization | null> {
+  const { results } = await db
+    .prepare(
+      `SELECT c.*, COUNT(oi.id) AS sales
+       FROM customizations c
+       LEFT JOIN order_items oi ON oi.customization_id = c.id
+       WHERE c.product_id = ? AND c.active = 1
+       GROUP BY c.id
+       ORDER BY c.recommended DESC, sales DESC, c.orden ASC, c.id ASC
+       LIMIT 1`
+    )
+    .bind(productId)
+    .all<Customization>();
+  return results?.[0] ?? null;
+}
+
+// ============================================================
 // Combos
 // ============================================================
 
@@ -590,10 +704,10 @@ export async function createOrder(db: DB, order: OrderInput, items: OrderItemInp
     statements.push(
       db
         .prepare(
-          `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal, extras_json)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal, extras_json, customization_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
         )
-        .bind(order.id, item.product_id, item.product_name, item.quantity, item.unit_price, item.subtotal, item.extras_json)
+        .bind(order.id, item.product_id, item.product_name, item.quantity, item.unit_price, item.subtotal, item.extras_json, item.customization_id ?? null)
     );
   }
   await db.batch(statements);
