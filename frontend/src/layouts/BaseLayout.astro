@@ -1,6 +1,7 @@
 ---
 import '../styles.css';
 import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 import WhatsAppButton from '../components/WhatsAppButton.astro';
 import { loadPublicConfig, jsonLdOpeningHours, whatsappE164 } from '../lib/public-config';
 
@@ -8,14 +9,18 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
   noindex?: boolean;
+  product?: { name: string; description?: string; price: number; slug: string; disponible: boolean };
 }
 
 const {
   title = 'Chill Burguer Grill — Hamburguesas smash a la parrilla',
   description = 'Hamburguesas smash, guarniciones y bebidas. Pedí online con delivery en Lanús y alrededores o retiro en local: MercadoPago, transferencia o efectivo.',
   image,
+  imageAlt,
   noindex = false,
+  product,
 } = Astro.props;
 
 const site = Astro.site ?? new URL('https://chillburguergrill.pages.dev');
@@ -23,6 +28,7 @@ const canonical = new URL(Astro.url.pathname, site).toString();
 const defaultOgImage = new URL('/images/og.png', site).toString();
 const imageIsRaster = !!image && !/\.svg$/i.test(image ?? '');
 const ogImage = imageIsRaster ? new URL(image!, site).toString() : defaultOgImage;
+const ogImageAlt = imageAlt ?? (product ? `${product.name} — Chill Burguer Grill` : 'Chill Burguer Grill');
 
 // 1 sola query D1 por request, compartida con Footer/página (ver lib/public-config).
 const { contact, hours } = await loadPublicConfig(Astro.locals);
@@ -48,6 +54,27 @@ const jsonLd = {
 };
 
 const robots = noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
+
+const productLd = product
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      ...(product.description ? { description: product.description } : {}),
+      image: ogImage,
+      sku: product.slug,
+      brand: { '@type': 'Brand', name: 'Chill Burguer Grill' },
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'ARS',
+        price: product.price,
+        url: canonical,
+        availability: product.disponible
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+      },
+    }
+  : null;
 ---
 
 <!doctype html>
@@ -72,20 +99,24 @@ const robots = noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <title>{title}</title>
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {productLd && <script type="application/ld+json" set:html={JSON.stringify(productLd)} />}
   </head>
   <body class="flex min-h-screen flex-col">
     <Header />
     <main class="flex-1">
       <slot />
     </main>
+    <Footer contact={contact} hours={hours} />
     <WhatsAppButton />
   </body>
 </html>
