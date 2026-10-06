@@ -1,12 +1,14 @@
 /**
  * Genera los assets de marca a partir de los originales del repo:
  *   - public/images/logo.webp        (logo optimizado, fondo transparente)
- *   - public/favicon.png             (emblema del logo, 32px)
- *   - public/apple-touch-icon.png    (emblema, 180px, fondo opaco)
- *   - public/favicon-192.png
+ *   - public/favicon.png             (logo completo, 32px, fondo transparente)
+ *   - public/favicon-192.png         (logo completo, 192px)
+ *   - public/favicon.ico             (16 + 32, para pedidos por defecto)
+ *   - public/apple-touch-icon.png    (logo completo, 180px, fondo opaco)
  *   - public/images/menu/products/*.webp  (fotos de la carta, 1200x900)
  *
- * Uso: node scripts/build-brand-assets.mjs   (requiere los originales en la raíz)
+ * Uso: node scripts/build-brand-assets.mjs [logo|favicons|photos|categories]
+ *      (sin argumentos = todos; requiere los originales en la raíz)
  */
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -49,28 +51,56 @@ async function buildLogo() {
   console.log('logo.webp ✓');
 }
 
-/** Recorta el emblema (la parte inferior con la hamburguesa dorada) para favicons. */
+/** Logo completo (mascot + emblema) a un tamaño dado, con fondo transparente. */
+function logoIcon(src, size) {
+  return sharp(src).resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } });
+}
+
+/** Contenedor .ico mínimo con entradas PNG (Vista+; lo entienden los navegadores actuales). */
+function buildIco(entries) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(entries.length, 4);
+
+  const dirEntries = [];
+  let offset = 6 + 16 * entries.length;
+  for (const { size, buf } of entries) {
+    const entry = Buffer.alloc(16);
+    entry.writeUInt8(size >= 256 ? 0 : size, 0);
+    entry.writeUInt8(size >= 256 ? 0 : size, 1);
+    entry.writeUInt8(0, 2);
+    entry.writeUInt16LE(1, 4);
+    entry.writeUInt16LE(32, 6);
+    entry.writeUInt32LE(buf.length, 8);
+    entry.writeUInt32LE(offset, 12);
+    offset += buf.length;
+    dirEntries.push(entry);
+  }
+  return Buffer.concat([header, ...dirEntries, ...entries.map((e) => e.buf)]);
+}
+
+/**
+ * Favicons con el logo oficial completo (antes era sólo el recorte del emblema).
+ * PNG transparentes + apple-touch opaco (iOS ignora la transparencia) + .ico.
+ */
 async function buildFavicons() {
   const src = join(repoRoot, 'logo.webp');
-  const emblem = sharp(src).extract({ left: 104, top: 250, width: 306, height: 238 });
 
-  await emblem
-    .clone()
-    .resize(192, 192, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-    .png()
-    .toFile(join(pub, 'favicon-192.png'));
+  await logoIcon(src, 32).png({ compressionLevel: 9 }).toFile(join(pub, 'favicon.png'));
+  await logoIcon(src, 192).png({ compressionLevel: 9 }).toFile(join(pub, 'favicon-192.png'));
 
-  await emblem
-    .clone()
-    .resize(32, 32, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-    .png()
-    .toFile(join(pub, 'favicon.png'));
-
-  await emblem
-    .clone()
-    .resize(180, 180, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
-    .png()
+  // iOS pinta el ícono opaco; fondo claro para que lea bien la paleta del logo.
+  await logoIcon(src, 180)
+    .flatten({ background: '#ffffff' })
+    .png({ compressionLevel: 9 })
     .toFile(join(pub, 'apple-touch-icon.png'));
+
+  const icoEntries = [];
+  for (const size of [16, 32]) {
+    icoEntries.push({ size, buf: await logoIcon(src, size).png().toBuffer() });
+  }
+  await writeFile(join(pub, 'favicon.ico'), buildIco(icoEntries));
 
   console.log('favicons ✓');
 }
@@ -140,7 +170,10 @@ async function buildCategoryAssets() {
   console.log('assets de categoría ✓');
 }
 
-await buildLogo();
-await buildFavicons();
-await buildMenuPhotos();
-await buildCategoryAssets();
+const step = process.argv[2];
+const only = (name) => !step || step === name;
+
+if (only('logo')) await buildLogo();
+if (only('favicons')) await buildFavicons();
+if (only('photos')) await buildMenuPhotos();
+if (only('categories')) await buildCategoryAssets();
