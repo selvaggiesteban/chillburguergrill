@@ -1,5 +1,5 @@
 {
-  "name": "chillburguergrill",
+  "name": "chillburgergrill",
   "type": "module",
   "version": "1.0.0",
   "private": true,
@@ -8,7 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "deploy": "astro build && wrangler pages deploy dist/ --project-name chillburguergrill"
+    "deploy": "astro build && wrangler pages deploy dist/ --project-name chillburgergrill"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.13",
