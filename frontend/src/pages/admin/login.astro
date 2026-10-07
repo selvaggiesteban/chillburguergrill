@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { TURNSTILE_ENABLED, TURNSTILE_SITEKEY, TURNSTILE_WORKER_URL } from '../../lib/turnstile';
 ---
 
 <BaseLayout title="Iniciar sesión — Chill Burguer Grill" noindex>
@@ -32,38 +33,46 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           />
         </div>
         <p id="error" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"></p>
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAAFQocgIu7oeEEhwP" data-action="turnstile-spin-v1"></div>
+        {TURNSTILE_ENABLED && (
+          <div class="cf-turnstile" data-sitekey={TURNSTILE_SITEKEY} data-action="turnstile-spin-v1" />
+        )}
         <button type="submit" class="btn-primary w-full">Ingresar</button>
       </form>
     </div>
   </main>
 </BaseLayout>
 
-<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{TURNSTILE_ENABLED && (
+  <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+)}
 <script>
+  import { TURNSTILE_ENABLED, TURNSTILE_WORKER_URL } from '../../lib/turnstile';
+
   const form = document.getElementById('login-form') as HTMLFormElement;
   const errorEl = document.getElementById('error') as HTMLParagraphElement;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorEl.classList.add('hidden');
-    const token = (form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value;
-    try {
-      const vr = await fetch('https://turnstile-siteverify-chillburgergrill.selvaggi-esteban.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-      const vd = (await vr.json().catch(() => ({ success: false }))) as { success?: boolean };
-      if (!vd.success) {
-        errorEl.textContent = 'Verificación anti-bot falló. Probá de nuevo.';
+    if (TURNSTILE_ENABLED) {
+      const token = (form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value;
+      try {
+        const vr = await fetch(TURNSTILE_WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+        const vd = (await vr.json().catch(() => ({ success: false }))) as { success?: boolean };
+        if (!vd.success) {
+          errorEl.textContent = 'Verificación anti-bot falló. Probá de nuevo.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+      } catch {
+        errorEl.textContent = 'Error de conexión. Probá de nuevo.';
         errorEl.classList.remove('hidden');
         return;
       }
-    } catch {
-      errorEl.textContent = 'Error de conexión. Probá de nuevo.';
-      errorEl.classList.remove('hidden');
-      return;
     }
     const data = new FormData(form);
     const res = await fetch('/api/auth/login', {

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useCart, cartSubtotal, clearCart, unitPriceOf, type CartItem } from '../../lib/cart';
 import { saveLastOrder } from '../../lib/notifications';
 import { formatPrice } from '../../lib/utils';
+import { TURNSTILE_ENABLED, TURNSTILE_SITEKEY, TURNSTILE_WORKER_URL } from '../../lib/turnstile';
 
 type Zone = { name: string; cost: number };
 
@@ -112,28 +113,27 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
     );
   }
 
-  const TURNSTILE_SITEKEY = '0x4AAAAAAFQocgIu7oeEEhwP';
-  const TURNSTILE_WORKER_URL = 'https://turnstile-siteverify-chillburgergrill.selvaggi-esteban.workers.dev';
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      const token = (
-        document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null
-      )?.value;
-      const verifyRes = await fetch(TURNSTILE_WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-      const verifyData = (await verifyRes.json().catch(() => ({ success: false }))) as {
-        success?: boolean;
-      };
-      if (!verifyData.success) {
-        setError('La verificación anti-bot falló. Probá de nuevo.');
-        return;
+      if (TURNSTILE_ENABLED) {
+        const token = (
+          document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null
+        )?.value;
+        const verifyRes = await fetch(TURNSTILE_WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+        const verifyData = (await verifyRes.json().catch(() => ({ success: false }))) as {
+          success?: boolean;
+        };
+        if (!verifyData.success) {
+          setError('La verificación anti-bot falló. Probá de nuevo.');
+          return;
+        }
       }
       const response = await fetch('/api/checkout', {
         method: 'POST',
@@ -330,11 +330,13 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
             />
           </label>
 
-          <div
-            className="cf-turnstile mt-4"
-            data-sitekey={TURNSTILE_SITEKEY}
-            data-action="turnstile-spin-v1"
-          />
+          {TURNSTILE_ENABLED && (
+            <div
+              className="cf-turnstile mt-4"
+              data-sitekey={TURNSTILE_SITEKEY}
+              data-action="turnstile-spin-v1"
+            />
+          )}
         </section>
       </div>
 
