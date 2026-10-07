@@ -22,5 +22,7 @@
       "binding": "SESSION",
       "id": "c548eb5da0f645d0a7048e9bc946342d"
     }
-  ]
+  ],
+  // Cloudflare Email Service: avisos de pedidos (staff + cliente).
+  "send_email": [{ "name": "EMAIL" }]
 }

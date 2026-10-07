@@ -16,6 +16,16 @@ interface Env {
   IMAGES: R2Bucket;
   MP_ACCESS_TOKEN?: string;
   JWT_SECRET?: string;
+  /** Cloudflare Email Service (send_email) — ausente en dev, then notify.ts skip. */
+  EMAIL?: {
+    send(message: {
+      to: string;
+      from: string | { email: string; name?: string };
+      subject: string;
+      html?: string;
+      text?: string;
+    }): Promise<unknown>;
+  };
   /** Inyectado por Cloudflare Pages en cada deploy (no disponible en dev). */
   CF_PAGES_COMMIT_SHA?: string;
 }

@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { errorJson, json } from '../../lib/api';
 import { CheckoutError, priceCheckout, type CheckoutPayload } from '../../lib/checkout';
 import { createOrder } from '../../lib/d1';
+import { notifyOrderCreated } from '../../lib/notify';
 import { createMpPreference, isMockMpToken } from '../../lib/mp';
 
 /** Rate limit en memoria por isolate: 10 pedidos / 60 s por IP. */
@@ -88,6 +89,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
     console.error('[checkout] createOrder error:', e);
     return errorJson('No pudimos registrar tu pedido. Probá de nuevo.', 500);
   }
+
+  // Emails de aviso (staff + cliente): fuera de la respuesta, con waitUntil.
+  locals.runtime.ctx.waitUntil(
+    notifyOrderCreated(env, { id: orderId, ...priced.order }, priced.items).catch((e) =>
+      console.error('[checkout] notifyOrderCreated error:', e)
+    )
+  );
 
   return json({ orderId, redirect });
 };
