@@ -22,7 +22,7 @@
       "binding": "SESSION",
       "id": "c548eb5da0f645d0a7048e9bc946342d"
     }
-  ],
-  // Cloudflare Email Service: avisos de pedidos (staff + cliente).
-  "send_email": [{ "name": "EMAIL" }]
+  ]
+  // Nota: Pages NO soporta "send_email"; los emails de pedido usan la
+  // REST API del Email Service con el secreto EMAIL_API_TOKEN.
 }

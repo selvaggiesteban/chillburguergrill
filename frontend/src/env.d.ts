@@ -16,7 +16,7 @@ interface Env {
   IMAGES: R2Bucket;
   MP_ACCESS_TOKEN?: string;
   JWT_SECRET?: string;
-  /** Cloudflare Email Service (send_email) — ausente en dev, then notify.ts skip. */
+  /** Cloudflare Email Service (binding) — opcional; Pages no lo soporta. */
   EMAIL?: {
     send(message: {
       to: string;
@@ -26,6 +26,8 @@ interface Env {
       text?: string;
     }): Promise<unknown>;
   };
+  /** Token con Email Sending:Edit para la REST API del Email Service (Pages secret). */
+  EMAIL_API_TOKEN?: string;
   /** Inyectado por Cloudflare Pages en cada deploy (no disponible en dev). */
   CF_PAGES_COMMIT_SHA?: string;
 }

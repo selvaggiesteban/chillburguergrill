@@ -37,9 +37,11 @@ type EmailBindingLike = {
 export type NotifyEnv = {
   DB: D1Database;
   EMAIL?: EmailBindingLike | undefined;
+  EMAIL_API_TOKEN?: string | undefined;
 };
 
 const FROM = { email: 'pedidos@chillburguergrill.com', name: 'Chill Burguer Grill' };
+const CF_ACCOUNT_ID = '793d012a405417ee4382f1ef1869753e';
 
 const PAYMENT_LABELS: Record<OrderForEmail['payment_method'], string> = {
   mercadopago: 'MercadoPago',
@@ -63,6 +65,38 @@ function shortRef(orderId: string): string {
 
 function looksLikeEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
+/**
+ * Pages no soporta el binding `send_email`, así que el transporte por defecto
+ * es la REST API del Email Service con un token secreto (EMAIL_API_TOKEN).
+ * Si existe el binding (dev/Worker) se usa directo.
+ */
+function deliver(
+  env: NotifyEnv,
+  msg: { to: string; subject: string; html: string; text: string }
+): Promise<unknown> {
+  if (env.EMAIL) return env.EMAIL.send({ to: msg.to, from: FROM, subject: msg.subject, html: msg.html, text: msg.text });
+  if (env.EMAIL_API_TOKEN) {
+    return fetch(`https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/email/sending/send`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.EMAIL_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: msg.to,
+        from: FROM.email,
+        subject: msg.subject,
+        html: msg.html,
+        text: msg.text,
+      }),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(`Email REST ${res.status} ${(await res.text()).slice(0, 300)}`);
+      return res.json();
+    });
+  }
+  return Promise.reject(new Error('sin transporte de email (binding EMAIL ni EMAIL_API_TOKEN)'));
 }
 
 async function staffRecipients(db: D1Database): Promise<string[]> {
@@ -173,8 +207,8 @@ export async function notifyOrderCreated(
   order: OrderForEmail,
   items: OrderItemInput[]
 ): Promise<void> {
-  if (!env.EMAIL) {
-    console.warn('[notify] binding EMAIL no disponible — email de pedido omitido', { order: order.id });
+  if (!env.EMAIL && !env.EMAIL_API_TOKEN) {
+    console.warn('[notify] sin transporte de email — email de pedido omitido', { order: order.id });
     return;
   }
 
@@ -190,7 +224,7 @@ export async function notifyOrderCreated(
     });
     const text = `${orderText(order, items)}\nVer en el panel: ${SITE}/admin/pedidos/${order.id}`;
     for (const to of staff) {
-      sends.push(env.EMAIL.send({ to, from: FROM, subject, html, text }));
+      sends.push(deliver(env, { to, subject, html, text }));
     }
   }
 
@@ -202,7 +236,7 @@ export async function notifyOrderCreated(
       label: 'Ver tu pedido',
     });
     const text = `${orderText(order, items)}\nVer tu pedido: ${SITE}/pedido/${order.id}`;
-    sends.push(env.EMAIL.send({ to: customerEmail, from: FROM, subject, html, text }));
+    sends.push(deliver(env, { to: customerEmail, subject, html, text }));
   }
 
   if (sends.length === 0) {
