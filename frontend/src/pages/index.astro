@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProductRow from '../components/menu/ProductRow.astro';
 import AddToCart from '../components/cart/AddToCart';
-import HeroCarousel from '../components/home/HeroCarousel.astro';
 import { listProducts, listCategories, getActivePromotions, bestPromoFor } from '../lib/d1';
 import { formatPrice, parseImages, coverOf } from '../lib/utils';
 
@@ -63,7 +62,6 @@ const FILTERS = [
 
 <BaseLayout>
   <h1 class="sr-only">Chill Burguer Grill — Nuestra Carta</h1>
-  <HeroCarousel />
 
   <div class="pb-20 pt-8 sm:pb-24">
     <div class="wrap">
