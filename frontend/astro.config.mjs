@@ -14,7 +14,7 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare({ platformProxy: { enabled: true } }),
   integrations: [react(), tailwind({ applyBaseStyles: false })],
-  site: 'https://chillburguergrill.pages.dev',
+  site: 'https://chillburgergrill.pages.dev',
   vite: {
     // Namespace de cache edge por commit: cada deploy arranca con cache vacía.
     define: { __BUILD_ID__: JSON.stringify(buildId.slice(0, 12)) },

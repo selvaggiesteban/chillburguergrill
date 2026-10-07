@@ -49,7 +49,7 @@ const PAYMENT_LABELS: Record<OrderForEmail['payment_method'], string> = {
   cash: 'Efectivo',
 };
 
-const SITE = 'https://chillburguergrill.pages.dev';
+const SITE = 'https://chillburgergrill.pages.dev';
 
 function escapeHtml(s: string): string {
   return s

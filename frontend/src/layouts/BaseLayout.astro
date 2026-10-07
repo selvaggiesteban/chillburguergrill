@@ -22,7 +22,7 @@ const {
   product,
 } = Astro.props;
 
-const site = Astro.site ?? new URL('https://chillburguergrill.pages.dev');
+const site = Astro.site ?? new URL('https://chillburgergrill.pages.dev');
 const canonical = new URL(Astro.url.pathname, site).toString();
 const defaultOgImage = new URL('/images/og.png', site).toString();
 const imageIsRaster = !!image && !/\.svg$/i.test(image ?? '');
