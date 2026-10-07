@@ -21,7 +21,7 @@ const hasProof = !!order.transfer_proof_key;
 <AdminLayout title={`Pedido ${shortId} — Chill Admin`}>
   <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
     <div>
-      <a href="/admin/pedidos" class="text-sm font-semibold text-brand-600 hover:text-brand-700">← Pedidos</a>
+      <a href="/admin/pedidos" class="text-sm font-semibold text-black hover:underline">Pedidos</a>
       <h1 class="font-display text-3xl uppercase text-slate-900">Pedido #{shortId}</h1>
       <p class="text-sm text-slate-500">{order.created_at.replace('T', ' ').slice(0, 16)}</p>
     </div>
@@ -120,8 +120,8 @@ const hasProof = !!order.transfer_proof_key;
         order.mp_preference_id?.startsWith('http') && (
           <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <p class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">MercadoPago</p>
-            <a href={order.mp_preference_id} target="_blank" class="text-sm font-semibold text-brand-600 hover:text-brand-700">
-              Abrir preferencia ↗
+            <a href={order.mp_preference_id} target="_blank" class="text-sm font-semibold text-black hover:underline">
+              Abrir preferencia
             </a>
             {order.mp_payment_id && <p class="mt-1 text-xs text-slate-500">Pago: {order.mp_payment_id}</p>}
           </div>

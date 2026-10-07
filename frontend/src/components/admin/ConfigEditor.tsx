@@ -141,7 +141,7 @@ export default function ConfigEditor() {
       });
       const data = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) throw new Error(data.error ?? 'No se pudo guardar');
-      setMessage({ kind: 'ok', text: 'Guardado ✓' });
+      setMessage({ kind: 'ok', text: 'Guardado' });
     } catch (e) {
       setMessage({ kind: 'error', text: e instanceof Error ? e.message : 'Error' });
     } finally {
@@ -285,7 +285,7 @@ export default function ConfigEditor() {
                 }}
                 aria-label="Quitar zona"
               >
-                ✕
+                Quitar
               </button>
             </div>
           ))}
@@ -393,7 +393,7 @@ export default function ConfigEditor() {
                   onClick={() => setConfig({ ...config, notices: config.notices.filter((_, i) => i !== index) })}
                   aria-label="Quitar novedad"
                 >
-                  ✕
+                  Quitar
                 </button>
               </div>
               <textarea

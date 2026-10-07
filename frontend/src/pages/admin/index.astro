@@ -25,7 +25,7 @@ const STATUS_BADGES: Record<string, { label: string; cls: string }> = {
 <AdminLayout title="Dashboard — Chill Admin">
   <div class="mb-6 flex items-center justify-between">
     <h1 class="font-display text-3xl uppercase text-slate-900">Dashboard</h1>
-    <a href="/admin/pedidos" class="text-sm font-semibold text-brand-600 hover:text-brand-700">Ver todos →</a>
+    <a href="/admin/pedidos" class="text-sm font-semibold text-black hover:underline">Ver todos</a>
   </div>
 
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -35,7 +35,7 @@ const STATUS_BADGES: Record<string, { label: string; cls: string }> = {
     </div>
     <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <p class="text-sm font-medium text-slate-500">Facturado hoy</p>
-      <p class="mt-1 font-display text-3xl text-brand-600">{formatPrice(stats.revenueToday)}</p>
+      <p class="mt-1 font-display text-3xl text-black">{formatPrice(stats.revenueToday)}</p>
     </div>
     <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <p class="text-sm font-medium text-slate-500">Pendientes</p>
@@ -50,7 +50,7 @@ const STATUS_BADGES: Record<string, { label: string; cls: string }> = {
   <div class="mt-8 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
     <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
       <h2 class="font-bold text-slate-900">Últimos pedidos</h2>
-      <a href="/admin/pedidos" class="text-sm font-semibold text-brand-600 hover:text-brand-700">Ver todos →</a>
+      <a href="/admin/pedidos" class="text-sm font-semibold text-black hover:underline">Ver todos</a>
     </div>
 
     {
@@ -72,7 +72,7 @@ const STATUS_BADGES: Record<string, { label: string; cls: string }> = {
               <tr class="hover:bg-slate-50">
                 <td class="px-5 py-3 text-slate-500">{formatDate(order.created_at)}</td>
                 <td class="px-5 py-3">
-                  <a href={`/admin/pedidos/${order.id}`} class="font-semibold text-slate-800 hover:text-brand-600">
+                  <a href={`/admin/pedidos/${order.id}`} class="font-semibold text-slate-800 hover:text-black">
                     {order.customer_name}
                   </a>
                 </td>

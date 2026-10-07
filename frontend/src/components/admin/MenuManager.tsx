@@ -68,7 +68,7 @@ export default function MenuManager() {
             type="button"
             onClick={() => setTab(t.id)}
             className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              tab === t.id ? 'bg-brand-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-brand-400'
+              tab === t.id ? 'bg-black text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-black'
             }`}
           >
             {t.label}

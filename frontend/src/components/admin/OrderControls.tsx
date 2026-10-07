@@ -43,7 +43,7 @@ export default function OrderControls({ orderId, status, paymentStatus }: Props)
       if (!response.ok) throw new Error(data.error ?? 'No se pudo actualizar');
       if (patch.status) setCurrentStatus(patch.status);
       if (patch.payment_status) setCurrentPayment(patch.payment_status);
-      setMessage({ kind: 'ok', text: 'Actualizado ✓' });
+      setMessage({ kind: 'ok', text: 'Actualizado' });
     } catch (e) {
       setMessage({ kind: 'error', text: e instanceof Error ? e.message : 'Error inesperado' });
     } finally {

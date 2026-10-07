@@ -9,10 +9,10 @@ const { title = 'Panel — Chill Burguer Grill' } = Astro.props;
 const pathname = Astro.url.pathname;
 
 const links = [
-  { href: '/admin', label: 'Dashboard', exact: true, icon: '📊' },
-  { href: '/admin/pedidos', label: 'Pedidos', exact: false, icon: '🧾' },
-  { href: '/admin/carta', label: 'Carta', exact: false, icon: '🍔' },
-  { href: '/admin/config', label: 'Configuración', exact: false, icon: '⚙️' },
+  { href: '/admin', label: 'Dashboard', exact: true },
+  { href: '/admin/pedidos', label: 'Pedidos', exact: false },
+  { href: '/admin/carta', label: 'Carta', exact: false },
+  { href: '/admin/config', label: 'Configuración', exact: false },
 ];
 
 const isActive = (href: string, exact: boolean) =>
@@ -38,8 +38,8 @@ const isActive = (href: string, exact: boolean) =>
   <body class="min-h-screen bg-slate-100 text-slate-800">
     <div class="flex min-h-screen flex-col md:flex-row">
       <aside class="flex w-full flex-row items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:min-h-screen md:w-56 md:flex-col md:items-stretch md:px-4 md:py-6">
-        <a href="/admin" class="font-display text-xl uppercase tracking-wide text-brand-600">
-          Chill<span class="text-slate-800">Admin</span>
+        <a href="/admin" aria-label="Ir al panel">
+          <img src="/images/logo.webp" alt="Chill Burguer Grill" class="h-12 w-auto" />
         </a>
 
         <nav class="flex gap-1 md:mt-8 md:flex-col">
@@ -48,14 +48,13 @@ const isActive = (href: string, exact: boolean) =>
               <a
                 href={link.href}
                 class:list={[
-                  'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition',
+                  'flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition',
                   isActive(link.href, link.exact)
-                    ? 'bg-brand-600 text-white'
+                    ? 'bg-black text-white'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                 ]}
               >
-                <span>{link.icon}</span>
-                <span class="hidden sm:inline">{link.label}</span>
+                <span>{link.label}</span>
               </a>
             ))
           }
@@ -67,7 +66,7 @@ const isActive = (href: string, exact: boolean) =>
             target="_blank"
             class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-100"
           >
-            ↗ Ver sitio
+            Ver sitio
           </a>
           <button
             type="button"

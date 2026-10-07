@@ -187,14 +187,14 @@ export function CategoriesPanel({
               <tr key={category.id} className="hover:bg-slate-50">
                 <td className="px-4 py-2.5 text-slate-400">{category.orden}</td>
                 <td className="px-4 py-2.5 font-semibold text-slate-800">{category.name}</td>
-                <td className="px-4 py-2.5">{category.visible === 1 ? '✓' : '—'}</td>
-                <td className="px-4 py-2.5">{category.destacada === 1 ? '★' : '—'}</td>
+                <td className="px-4 py-2.5">{category.visible === 1 ? 'Sí' : 'No'}</td>
+                <td className="px-4 py-2.5">{category.destacada === 1 ? 'Sí' : 'No'}</td>
                 <td className="px-4 py-2.5 text-right">
                   <span className="inline-flex gap-3">
                     <button
                       type="button"
                       onClick={() => setForm(category)}
-                      className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                      className="text-xs font-semibold text-black hover:underline"
                     >
                       Editar
                     </button>
@@ -233,6 +233,8 @@ export function ProductsPanel({
   const [comboProductId, setComboProductId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
   const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
 
@@ -322,6 +324,26 @@ export function ProductsPanel({
 
   const imagesText = Array.isArray(form?.images) ? (form.images as string[]).join('\n') : String(form?.images ?? '');
 
+  const uploadImage = async (file: File) => {
+    if (!form) return;
+    setUploading(true);
+    setUploadMsg(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/images', { method: 'POST', body: fd });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !data.url) throw new Error(data.error ?? 'No se pudo subir la imagen');
+      const current = imagesText.split('\n').map((s) => s.trim()).filter(Boolean);
+      setForm({ ...form, images: [...current, data.url].join('\n') });
+      setUploadMsg({ kind: 'ok', text: 'Imagen subida' });
+    } catch (e) {
+      setUploadMsg({ kind: 'error', text: e instanceof Error ? e.message : 'Error al subir' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <PanelShell
       title="Productos"
@@ -391,6 +413,27 @@ export function ProductsPanel({
                   onChange={(e) => setForm({ ...form, images: e.target.value })}
                 />
               </Field>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                <label className="btn-secondary inline-flex cursor-pointer items-center px-3 py-1.5 text-xs font-semibold">
+                  {uploading ? 'Subiendo…' : 'Subir imagen'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    className="sr-only"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = '';
+                      if (file) void uploadImage(file);
+                    }}
+                  />
+                </label>
+                {uploadMsg && (
+                  <span className={`text-xs ${uploadMsg.kind === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                    {uploadMsg.text}
+                  </span>
+                )}
+              </div>
             </div>
             <Field label="Orden">
               <input
@@ -503,11 +546,11 @@ export function ProductsPanel({
                     <a
                       href={`/producto/${product.slug}`}
                       target="_blank"
-                      className="font-semibold text-slate-800 hover:text-brand-600"
+                      className="font-semibold text-slate-800 hover:text-black"
                     >
                       {product.name}
                     </a>
-                    {product.type === 'combo' && <span className="ml-2 rounded bg-brand-100 px-1.5 py-0.5 text-xs font-bold text-brand-700">combo</span>}
+                    {product.type === 'combo' && <span className="ml-2 rounded bg-black px-1.5 py-0.5 text-xs font-bold text-white">combo</span>}
                   </td>
                   <td className="px-4 py-2.5 text-slate-500">{categoryNames.get(product.category_id) ?? '—'}</td>
                   <td className="px-4 py-2.5 font-semibold">${product.price.toLocaleString('es-AR')}</td>
@@ -535,7 +578,7 @@ export function ProductsPanel({
                         title="Destacado"
                         className={`rounded px-1.5 py-0.5 font-bold ${product.destacado === 1 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'}`}
                       >
-                        ★
+                        dest
                       </button>
                     </span>
                   </td>
@@ -544,7 +587,7 @@ export function ProductsPanel({
                       <button
                         type="button"
                         onClick={() => void openEdit(product)}
-                        className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                        className="text-xs font-semibold text-black hover:underline"
                       >
                         Editar
                       </button>
@@ -733,7 +776,7 @@ export function ExtrasPanel({
                           active: extra.active,
                         })
                       }
-                      className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                      className="text-xs font-semibold text-black hover:underline"
                     >
                       Editar
                     </button>
@@ -949,9 +992,9 @@ export function PromosPanel({
               <tr key={promo.id} className="hover:bg-slate-50">
                 <td className="px-4 py-2.5 font-semibold text-slate-800">{promo.name}</td>
                 <td className="px-4 py-2.5 text-slate-500">{targetLabel(promo)}</td>
-                <td className="px-4 py-2.5 font-bold text-brand-600">{promo.discount_pct}%</td>
+                <td className="px-4 py-2.5 font-bold text-black">{promo.discount_pct}%</td>
                 <td className="px-4 py-2.5 text-xs text-slate-500">
-                  {(promo.start_at ?? 'siempre').slice(0, 10)} → {(promo.end_at ?? 'siempre').slice(0, 10)}
+                  {(promo.start_at ?? 'siempre').slice(0, 10)} al {(promo.end_at ?? 'siempre').slice(0, 10)}
                 </td>
                 <td className="px-4 py-2.5">
                   <button
@@ -978,7 +1021,7 @@ export function PromosPanel({
                           active: promo.active,
                         })
                       }
-                      className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                      className="text-xs font-semibold text-black hover:underline"
                     >
                       Editar
                     </button>
