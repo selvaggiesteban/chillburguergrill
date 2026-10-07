@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { errorJson, json } from '../../../../lib/api';
 import { assertAdmin, readJson, parseId, str, num, int01, withValidation } from '../../../../lib/admin';
 import { getProductById, updateProduct, deleteProduct, listExtrasForProduct } from '../../../../lib/d1';
-import { slugify } from '../../../../lib/utils';
+import { slugify, normalizeImages } from '../../../../lib/utils';
 
 export const GET: APIRoute = async ({ params, locals }) => {
   const denied = assertAdmin(locals);
@@ -41,9 +41,7 @@ export const PUT: APIRoute = withValidation(async ({ params, request, locals }) 
   if (body.description !== undefined) patch.description = String(body.description).slice(0, 1000);
   if (body.price !== undefined) patch.price = num(body.price, 'precio', 0, 10_000_000);
   if (body.images !== undefined) {
-    patch.images = JSON.stringify(
-      (Array.isArray(body.images) ? body.images : []).filter((x): x is string => typeof x === 'string').slice(0, 8)
-    );
+    patch.images = JSON.stringify(normalizeImages(body.images));
   }
   if (body.cover_index !== undefined) patch.cover_index = num(body.cover_index, 'imagen', 0, 8);
   if (body.disponible !== undefined) patch.disponible = int01(body.disponible, 'disponible');

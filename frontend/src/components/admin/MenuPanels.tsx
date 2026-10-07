@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Category, Product, ExtraDetailed, Promotion } from '../../lib/d1';
+import { normalizeImages, parseImages } from '../../lib/utils';
 
 export type ApiFn = <T>(path: string, init?: RequestInit) => Promise<T>;
 
@@ -240,7 +241,7 @@ export function ProductsPanel({
 
   const openEdit = async (product: Product) => {
     setError(null);
-    setForm({ ...product });
+    setForm({ ...product, images: parseImages(product.images).join('\n') });
     if (product.type === 'combo') {
       try {
         const data = await api<{ items: { product_id: number; quantity: number; product_name: string }[] }>(
@@ -261,17 +262,13 @@ export function ProductsPanel({
     setBusy(true);
     setError(null);
     try {
-      const images = String(form.images ?? '')
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean);
       const payload = {
         name: form.name,
         category_id: form.category_id,
         type: form.type ?? 'simple',
         price: form.price ?? 0,
         description: form.description ?? '',
-        images: Array.isArray(form.images) ? form.images : images,
+        images: normalizeImages(form.images),
         orden: form.orden ?? 0,
         disponible: form.disponible ?? 1,
         visible: form.visible ?? 1,

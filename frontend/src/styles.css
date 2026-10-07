@@ -9,6 +9,11 @@
   body {
     @apply bg-paper text-ink-800 antialiased;
   }
+  /* Todas las imágenes: cover + centradas (las utilidades pueden sobreescribir). */
+  img {
+    object-fit: cover;
+    object-position: center;
+  }
   /* Roboto reemplaza a Impact en los títulos display: conserva el peso
      visual pesado del anterior en todos los breakpoints (mobile incluido). */
   .font-display {

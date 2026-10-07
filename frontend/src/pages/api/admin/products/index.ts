@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { errorJson, json } from '../../../../lib/api';
 import { assertAdmin, readJson, str, num, int01, withValidation } from '../../../../lib/admin';
 import { listProducts, createProduct } from '../../../../lib/d1';
-import { slugify } from '../../../../lib/utils';
+import { slugify, normalizeImages } from '../../../../lib/utils';
 
 export const GET: APIRoute = async ({ url, locals }) => {
   const denied = assertAdmin(locals);
@@ -38,9 +38,7 @@ export const POST: APIRoute = withValidation(async ({ request, locals }) => {
     slug: body.slug ? str(body.slug, 'slug', 2, 120) : slugify(name),
     description: typeof body.description === 'string' ? body.description.slice(0, 1000) : '',
     price: num(body.price, 'precio', 0, 10_000_000),
-    images: Array.isArray(body.images)
-      ? (body.images as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 8).map((s) => s.slice(0, 500))
-      : [],
+    images: normalizeImages(body.images),
     cover_index: num(body.cover_index ?? 0, 'imagen', 0, 8),
     disponible: int01(body.disponible ?? 1, 'disponible'),
     visible: int01(body.visible ?? 1, 'visible'),
