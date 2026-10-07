@@ -57,7 +57,7 @@ export default function AddToCart({ product, extras = [], compact = false, icon 
         }}
         aria-label={`Agregar ${product.name} al carrito`}
         className={`flex h-11 w-11 items-center justify-center rounded-full text-xl font-bold shadow-lg transition hover:scale-110 active:scale-95 ${
-          added ? 'bg-green-600 text-white' : 'bg-[#4123C0] text-white hover:bg-brand-700'
+          added ? 'bg-green-600 text-white' : 'bg-black text-white hover:bg-zinc-800'
         }`}
       >
         {added ? '✓' : '+'}
@@ -96,8 +96,8 @@ export default function AddToCart({ product, extras = [], compact = false, icon 
                   <label
                     className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 transition ${
                       isActive
-                        ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500'
-                        : 'border-ink-800/15 bg-white hover:border-brand-400'
+                        ? 'border-black bg-zinc-50 ring-1 ring-black'
+                        : 'border-ink-800/15 bg-white hover:border-black'
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -105,7 +105,7 @@ export default function AddToCart({ product, extras = [], compact = false, icon 
                         type="checkbox"
                         checked={isActive}
                         onChange={() => toggleExtra(extra.id)}
-                        className="h-4 w-4 accent-brand-600"
+                        className="h-4 w-4 accent-black"
                       />
                       <span className="font-medium text-ink-800">{extra.name}</span>
                     </span>
@@ -126,7 +126,7 @@ export default function AddToCart({ product, extras = [], compact = false, icon 
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             disabled={quantity <= 1}
-            className="px-4 py-2.5 text-lg text-ink-800/70 transition hover:text-brand-600 disabled:opacity-30"
+            className="px-4 py-2.5 text-lg text-ink-800/70 transition hover:text-black disabled:opacity-30"
             aria-label="Restar uno"
           >
             −
@@ -135,7 +135,7 @@ export default function AddToCart({ product, extras = [], compact = false, icon 
           <button
             type="button"
             onClick={() => setQuantity((q) => Math.min(99, q + 1))}
-            className="px-4 py-2.5 text-lg text-ink-800/70 transition hover:text-brand-600"
+            className="px-4 py-2.5 text-lg text-ink-800/70 transition hover:text-black"
             aria-label="Sumar uno"
           >
             +

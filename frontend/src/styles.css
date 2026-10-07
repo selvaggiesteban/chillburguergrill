@@ -17,11 +17,11 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-black px-5 py-2.5 font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink-800/15 bg-white px-5 py-2.5 font-semibold text-ink-800 transition hover:border-brand-500 hover:text-brand-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink-800/15 bg-white px-5 py-2.5 font-semibold text-ink-800 transition hover:border-black hover:text-black active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-ghost {
@@ -33,7 +33,7 @@
   }
 
   .input {
-    @apply w-full rounded-lg border border-ink-800/20 bg-white px-3 py-2 text-ink-800 outline-none transition placeholder:text-ink-800/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20;
+    @apply w-full rounded-lg border border-ink-800/20 bg-white px-3 py-2 text-ink-800 outline-none transition placeholder:text-ink-800/40 focus:border-black focus:ring-2 focus:ring-black/20;
   }
 
   .badge {
@@ -53,11 +53,11 @@
   }
 
   .chip {
-    @apply inline-flex whitespace-nowrap rounded-full border border-ink-800/15 bg-white px-4 py-1.5 text-sm font-semibold text-ink-800/70 transition hover:border-brand-500 hover:text-brand-600;
+    @apply inline-flex whitespace-nowrap rounded-full border border-ink-800/15 bg-white px-4 py-1.5 text-sm font-semibold text-ink-800/70 transition hover:border-black hover:text-black;
   }
 
   .chip-active {
-    @apply border-brand-600 bg-brand-600 text-white hover:border-brand-600 hover:text-white;
+    @apply border-black bg-black text-white hover:border-black hover:text-white;
   }
 
   .section-title {

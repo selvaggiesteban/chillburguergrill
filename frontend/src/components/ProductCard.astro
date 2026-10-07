@@ -53,7 +53,7 @@ const cartProduct = {
         {hasPromo && (
           <span class="block text-sm text-ink-800/40 line-through">{formatPrice(product.price)}</span>
         )}
-        <span class="font-display text-2xl text-brand-600">{formatPrice(finalPrice)}</span>
+          <span class="font-display text-2xl text-black">{formatPrice(finalPrice)}</span>
       </div>
       {!soldOut && <AddToCart product={cartProduct} compact client:visible />}
     </div>

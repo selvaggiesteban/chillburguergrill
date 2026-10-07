@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   useCart,
   useCartSubtotal,
@@ -59,8 +60,9 @@ export default function CartBar() {
         )}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label="Carrito">
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-[70] flex justify-end" role="dialog" aria-modal="true" aria-label="Carrito">
           <button
             type="button"
             className="absolute inset-0 bg-ink-900/50 backdrop-blur-sm"
@@ -129,16 +131,16 @@ export default function CartBar() {
                             <button
                               type="button"
                               onClick={() => setItemQuantity(item.key, item.quantity - 1)}
-                              className="px-2.5 py-1 text-ink-800/70 transition hover:text-brand-600"
+                              className="px-2.5 py-1 text-ink-800/70 transition hover:text-black"
                               aria-label="Restar uno"
                             >
                               −
                             </button>
-                            <span className="min-w-[1.5rem] text-center text-sm font-bold">{item.quantity}</span>
+                            <span className="min-w-[1.5rem] text-center text-sm font-bold text-ink-900">{item.quantity}</span>
                             <button
                               type="button"
                               onClick={() => setItemQuantity(item.key, item.quantity + 1)}
-                              className="px-2.5 py-1 text-ink-800/70 transition hover:text-brand-600"
+                              className="px-2.5 py-1 text-ink-800/70 transition hover:text-black"
                               aria-label="Sumar uno"
                             >
                               +
@@ -162,11 +164,11 @@ export default function CartBar() {
                   <span className="font-display text-2xl text-ink-800">{formatPrice(subtotal)}</span>
                 </div>
                 <a
-                  href="/checkout"
+                  href="/pagar"
                   onClick={() => setOpen(false)}
                   className="btn-primary w-full"
                 >
-                  Finalizar pedido
+                  Pagar
                 </a>
                 <button
                   type="button"
@@ -178,8 +180,9 @@ export default function CartBar() {
               </footer>
             )}
           </aside>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }

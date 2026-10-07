@@ -13,21 +13,18 @@ type Props = {
 
 type PaymentMethod = 'mercadopago' | 'transfer' | 'cash';
 
-const PAYMENT_LABELS: Record<PaymentMethod, { title: string; hint: string; icon: string }> = {
+const PAYMENT_LABELS: Record<PaymentMethod, { title: string; hint: string }> = {
   mercadopago: {
     title: 'MercadoPago',
     hint: 'Tarjeta, débito o crédito. Te redirigimos a pagar.',
-    icon: '💳',
   },
   transfer: {
     title: 'Transferencia',
     hint: 'Te pasamos los datos bancarios y subís el comprobante.',
-    icon: '🏦',
   },
   cash: {
     title: 'Efectivo',
     hint: 'Pagás al recibir el pedido.',
-    icon: '💵',
   },
 };
 
@@ -47,13 +44,13 @@ function CartRow({ item }: { item: CartItem }) {
           <h3 className="font-display text-lg uppercase leading-tight tracking-wide text-ink-900">
             {item.name}
           </h3>
-          <span className="inline-flex items-center rounded-md bg-brand-100 px-1.5 py-0.5 text-[11px] font-bold leading-none text-brand-700">
+          <span className="inline-flex items-center rounded-md bg-black px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
             {item.quantity}×
           </span>
         </div>
         {extrasText && <p className="line-clamp-2 text-sm text-ink-800/60">{extrasText}</p>}
         <div className="mt-1 flex items-baseline gap-2">
-          <span className="font-display text-xl leading-none text-brand-600">
+          <span className="font-display text-xl leading-none text-black">
             {formatPrice(lineTotal)}
           </span>
           {item.quantity > 1 && (
@@ -108,10 +105,9 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
   if (items.length === 0) {
     return (
       <div className="card mx-auto max-w-md p-10 text-center">
-        <p className="text-4xl">🍔</p>
-        <h2 className="mt-3 font-display text-2xl uppercase text-ink-800">Tu carrito está vacío</h2>
+        <h2 className="font-display text-2xl uppercase text-ink-800">Tu carrito está vacío</h2>
         <p className="mt-1 text-sm text-ink-800/60">Agregá productos de la carta para continuar.</p>
-        <a href="/menu" className="btn-primary mt-5">Ver la carta</a>
+        <a href="/" className="btn-primary mt-5">Ver la carta</a>
       </div>
     );
   }
@@ -223,11 +219,10 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
               disabled={zones.length === 0}
               className={`rounded-xl border p-4 text-left transition disabled:opacity-50 ${
                 fulfillment === 'delivery'
-                  ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500'
-                  : 'border-ink-800/15 hover:border-brand-400'
+                  ? 'border-black bg-zinc-50 ring-1 ring-black'
+                  : 'border-ink-800/15 hover:border-black'
               }`}
             >
-              <span className="block text-lg">🛵</span>
               <span className="font-bold text-ink-800">Delivery</span>
               <span className="block text-xs text-ink-800/60">A tu puerta</span>
             </button>
@@ -236,11 +231,10 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
               onClick={() => setFulfillment('pickup')}
               className={`rounded-xl border p-4 text-left transition ${
                 fulfillment === 'pickup'
-                  ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500'
-                  : 'border-ink-800/15 hover:border-brand-400'
+                  ? 'border-black bg-zinc-50 ring-1 ring-black'
+                  : 'border-ink-800/15 hover:border-black'
               }`}
             >
-              <span className="block text-lg">🏃</span>
               <span className="font-bold text-ink-800">Retiro en local</span>
               <span className="block text-xs text-ink-800/60">Sin costo de envío</span>
             </button>
@@ -287,18 +281,17 @@ export default function CheckoutView({ zones, freeFrom, payments }: Props) {
                   key={method}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
                     payment === method
-                      ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500'
-                      : 'border-ink-800/15 hover:border-brand-400'
+                      ? 'border-black bg-zinc-50 ring-1 ring-black'
+                      : 'border-ink-800/15 hover:border-black'
                   }`}
                 >
                   <input
                     type="radio"
                     name="payment"
-                    className="h-4 w-4 accent-brand-600"
+                    className="h-4 w-4 accent-black"
                     checked={payment === method}
                     onChange={() => setPayment(method)}
                   />
-                  <span className="text-xl">{PAYMENT_LABELS[method].icon}</span>
                   <span>
                     <span className="block font-bold text-ink-800">{PAYMENT_LABELS[method].title}</span>
                     <span className="block text-xs text-ink-800/60">{PAYMENT_LABELS[method].hint}</span>

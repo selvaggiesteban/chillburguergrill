@@ -83,7 +83,7 @@ export default function ProductDetailView({
       sameOrigin = false;
     }
     if (sameOrigin) window.history.back();
-    else window.location.href = '/menu';
+    else window.location.href = '/';
   };
 
   const onToggleFavorite = () => setFavorite(toggleFavorite(product.id));
@@ -282,7 +282,7 @@ export default function ProductDetailView({
         {showConfig && (
           <div
             className={`mb-6 rounded-2xl border-2 transition-colors ${
-              configChoice === 'own' ? 'border-brand-500 bg-brand-50/40' : 'border-zinc-100 bg-white'
+              configChoice === 'own' ? 'border-black bg-black/5' : 'border-zinc-100 bg-white'
             }`}
           >
             <button
@@ -313,7 +313,7 @@ export default function ProductDetailView({
                     </span>
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 ${
-                        included ? 'border-brand-500 bg-brand-500' : 'border-zinc-300 bg-white'
+                        included ? 'border-black bg-black' : 'border-zinc-300 bg-white'
                       }`}
                     >
                       {included && (
@@ -332,7 +332,7 @@ export default function ProductDetailView({
         {showPopular && popular && (
           <div
             className={`mb-6 rounded-2xl border-2 transition-colors ${
-              configChoice === 'popular' ? 'border-brand-500 bg-brand-50/40' : 'border-zinc-100 bg-white'
+              configChoice === 'popular' ? 'border-black bg-black/5' : 'border-zinc-100 bg-white'
             }`}
           >
             <button
@@ -352,7 +352,7 @@ export default function ProductDetailView({
                   {popularIngredients.join(' · ')}
                 </span>
                 {popularSales > 0 && (
-                  <span className="mt-1 block text-[11px] font-semibold text-brand-600">
+                  <span className="mt-1 block text-[11px] font-semibold text-black">
                     {popularSales} {popularSales === 1 ? 'pedido' : 'pedidos'}
                   </span>
                 )}
@@ -407,7 +407,7 @@ export default function ProductDetailView({
                       type="button"
                       onClick={() => setAdicionalId(option.id)}
                       className={`flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors ${
-                        isSelected ? 'bg-brand-50' : ''
+                        isSelected ? 'bg-zinc-100' : ''
                       }`}
                       aria-pressed={isSelected}
                     >
@@ -446,12 +446,12 @@ export default function ProductDetailView({
                   <div 
                     key={option.id} 
                     onClick={() => handleSelection(group.id, option.id, group.max_selection)}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${isSelected ? 'border-brand-500 bg-brand-50' : 'border-zinc-100 bg-white'}`}
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${isSelected ? 'border-black bg-zinc-50' : 'border-zinc-100 bg-white'}`}
                   >
                     <span className="text-sm font-medium text-ink-800">{option.name}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-ink-900">+ ${option.price}</span>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-zinc-300'}`}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-black bg-black' : 'border-zinc-300'}`}>
                         {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
                       </div>
                     </div>
@@ -481,7 +481,7 @@ export default function ProductDetailView({
           <button 
             disabled={isAddingDisabled || soldOut}
             onClick={handleAddToCart}
-            className={`flex-1 h-12 rounded-full font-bold text-white transition-all ${isAddingDisabled || soldOut ? 'bg-zinc-300 cursor-not-allowed' : added ? 'bg-green-600' : 'bg-brand-600 hover:bg-brand-700'}`}
+            className={`flex-1 h-12 rounded-full font-bold text-white transition-all ${isAddingDisabled || soldOut ? 'bg-zinc-300 cursor-not-allowed' : added ? 'bg-green-600' : 'bg-black hover:bg-zinc-800'}`}
           >
             {added ? '✓ Agregado' : soldOut ? 'Agotado' : 'Agregar'}
           </button>
@@ -495,7 +495,7 @@ function Radio({ checked }: { checked: boolean }) {
   return (
     <span
       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-        checked ? 'border-brand-500 bg-brand-500' : 'border-zinc-300 bg-white'
+        checked ? 'border-black bg-black' : 'border-zinc-300 bg-white'
       }`}
       aria-hidden="true"
     >
