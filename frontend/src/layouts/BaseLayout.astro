@@ -1,7 +1,6 @@
 ---
 import '../styles.css';
 import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
 import WhatsAppButton from '../components/WhatsAppButton.astro';
 import { loadPublicConfig, jsonLdOpeningHours, whatsappE164 } from '../lib/public-config';
 
@@ -49,7 +48,7 @@ const jsonLd = {
   ...(contact?.email ? { email: contact.email } : {}),
   ...(addressLine ? { address: { '@type': 'PostalAddress', streetAddress: addressLine, addressLocality: 'Buenos Aires', addressCountry: 'AR' } } : {}),
   ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
-  hasMenu: new URL('/menu', site).toString(),
+  hasMenu: new URL('/', site).toString(),
   acceptsReservations: false,
 };
 
@@ -116,7 +115,6 @@ const productLd = product
     <main class="flex-1">
       <slot />
     </main>
-    <Footer contact={contact} hours={hours} />
     <WhatsAppButton />
   </body>
 </html>

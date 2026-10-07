@@ -5,12 +5,12 @@ import { getProductBySlug, listExtrasForProduct, getActivePromotions, bestPromoF
 import { parseImages, coverOf } from '../../lib/utils';
 
 const { slug } = Astro.params;
-if (!slug) return Astro.redirect('/menu');
+if (!slug) return Astro.redirect('/');
 
 const db = Astro.locals.runtime.env.DB;
 const product = await getProductBySlug(db, slug);
 
-if (!product) return Astro.redirect('/menu');
+if (!product) return Astro.redirect('/');
 
 const [extras, promos, adicional, popular] = await Promise.all([
   listExtrasForProduct(db, product.id),

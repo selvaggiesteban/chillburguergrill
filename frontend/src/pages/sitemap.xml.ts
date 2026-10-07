@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { listProducts } from '../lib/d1';
 
-const STATIC_PATHS = ['/', '/menu', '/contacto', '/politicas-de-envios-y-devoluciones'];
+const STATIC_PATHS = ['/', '/contacto', '/politicas-de-envios-y-devoluciones'];
 
 export const GET: APIRoute = async ({ locals, url, site }) => {
   const origin = site ?? new URL(url.origin);

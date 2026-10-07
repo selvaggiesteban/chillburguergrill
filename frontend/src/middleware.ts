@@ -28,7 +28,7 @@ const PUBLIC_CACHE_RULES: CacheRule[] = [
 // Nunca se cachea HTML con datos personales ni mutaciones (POST/PUT/DELETE no
 // entran igual porque la regla exige GET). Las rutas /api que no están en
 // PUBLIC_CACHE_RULES tampoco se cachean: no matchean ninguna regla.
-const NEVER_CACHE_PREFIXES = ['/admin', '/checkout', '/pedido'];
+const NEVER_CACHE_PREFIXES = ['/admin', '/checkout', '/pagar', '/pedido'];
 
 function isNeverCached(pathname: string): boolean {
   return NEVER_CACHE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

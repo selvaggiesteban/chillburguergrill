@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CheckoutView from '../components/checkout/CheckoutView';
+import { getConfigs, type DeliveryConfig } from '../lib/d1';
+
+type PaymentsConfig = Record<string, boolean>;
+
+const db = Astro.locals.runtime.env.DB;
+// Una sola query para delivery + payments (1 subrequest en vez de 2).
+const cfg = await getConfigs<{ delivery: DeliveryConfig; payments: PaymentsConfig }>(db, ['delivery', 'payments']);
+const delivery = cfg.delivery ?? null;
+const payments = cfg.payments ?? null;
+
+const zones = delivery?.zones ?? [];
+const freeFrom = Number(delivery?.free_from) || 0;
+const enabledPayments = {
+  mercadopago: payments?.mercadopago !== false,
+  transfer: payments?.transfer !== false,
+  cash: payments?.cash !== false,
+};
+---
+
+<BaseLayout
+  title="Pagar — Chill Burguer Grill"
+  description="Completá tu pedido: datos, entrega y forma de pago."
+  noindex
+>
+  <div class="wrap py-10">
+    <h1 class="section-title mb-8">Pagar</h1>
+    <CheckoutView
+      zones={zones}
+      freeFrom={freeFrom}
+      payments={enabledPayments}
+      client:load
+    />
+  </div>
+</BaseLayout>

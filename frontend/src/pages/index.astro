@@ -1,68 +1,278 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ProductCard from '../components/ProductCard.astro';
+import ProductRow from '../components/menu/ProductRow.astro';
+import AddToCart from '../components/cart/AddToCart';
 import HeroCarousel from '../components/home/HeroCarousel.astro';
-import { listProducts, listCategories, getActivePromotions } from '../lib/d1';
+import { listProducts, listCategories, getActivePromotions, bestPromoFor } from '../lib/d1';
+import { formatPrice, parseImages, coverOf } from '../lib/utils';
 
 const db = Astro.locals.runtime.env.DB;
-// En paralelo: 3 subrequests D1 concurrentes en vez de 3 ida y vuelta.
-const [{ rows: featured }, categories, promos] = await Promise.all([
-  listProducts(db, { destacadosOnly: true, limit: 6 }),
+const nowIso = new Date().toISOString();
+
+const [categories, allProducts, promos] = await Promise.all([
   listCategories(db),
-  getActivePromotions(db, new Date().toISOString()),
+  listProducts(db, { includeHidden: false }),
+  getActivePromotions(db, nowIso),
 ]);
+
+const groups = categories
+  .map((cat) => ({
+    cat,
+    items: allProducts.rows
+      .filter((p) => p.category_id === cat.id)
+      .sort((a, b) => a.orden - b.orden),
+  }))
+  .filter((group) => group.items.length > 0);
+
+const scored = allProducts.rows.map((p) => ({
+  product: p,
+  promo: bestPromoFor(promos, p.id, p.category_id, p.price),
+}));
+
+const hero =
+  scored.find((s) => s.product.destacado === 1 && s.promo.discountPct > 0) ??
+  scored.find((s) => s.product.destacado === 1) ??
+  scored.find((s) => s.promo.discountPct > 0) ??
+  scored[0];
+
+const heroImage = hero ? coverOf(parseImages(hero.product.images), hero.product.cover_index) : null;
+const heroBadge = hero
+  ? hero.promo.discountPct > 0
+    ? `${hero.promo.discountPct}% OFF`
+    : hero.product.destacado === 1
+      ? 'Más vendido'
+      : null
+  : null;
+const heroCart = hero
+  ? {
+      productId: hero.product.id,
+      slug: hero.product.slug,
+      name: hero.product.name,
+      image: heroImage ?? '',
+      basePrice: hero.promo.promoPrice,
+    }
+  : null;
+
+const FILTERS = [
+  { id: 'all', label: 'Todos' },
+  { id: 'discount', label: 'Con descuento' },
+  { id: 'featured', label: 'Más vendidos' },
+  { id: 'price', label: 'Precio más bajo' },
+];
 ---
 
 <BaseLayout>
-  <h1 class="sr-only">Chill Burguer Grill — Hamburguesas smash en Lanús</h1>
+  <h1 class="sr-only">Chill Burguer Grill — Nuestra Carta</h1>
   <HeroCarousel />
 
-  {
-    categories.length > 0 && (
-      <section class="wrap pb-12">
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {categories.map((category) => (
-              <a
-                href={`/menu#${category.slug}`}
-                class="card group relative overflow-hidden transition hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div class="aspect-[4/3] overflow-hidden bg-brand-50">
-                  <img
-                    src={`/images/menu/categories/${category.slug}.webp`}
-                    alt=""
-                    loading="lazy"
-                    class="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                    onerror={`this.dataset.fb ? (this.onerror=null, this.src='/images/menu/default.svg') : (this.dataset.fb=1, this.src='/images/menu/${category.slug}.svg')`}
-                  />
+  <div class="pb-20 pt-8 sm:pb-24">
+    <div class="wrap">
+      {
+        hero && heroCart && heroImage && (
+          <section class="card group relative mb-10 overflow-hidden" aria-label="Destacado">
+            <a href={`/producto/${hero.product.slug}`} class="block">
+              <div class="relative aspect-[16/10] overflow-hidden bg-brand-100 sm:aspect-[16/7]">
+                <img
+                  src={heroImage}
+                  alt={hero.product.name}
+                  class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                />
+                <div class="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/75 via-black/35 to-transparent p-4 sm:p-6">
+                  <div class="min-w-0">
+                    {heroBadge && (
+                      <span class="mb-2 inline-flex rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white ring-1 ring-white/40 backdrop-blur">
+                        {heroBadge}
+                      </span>
+                    )}
+                    <h2 class="truncate font-display text-2xl uppercase leading-none tracking-wide text-white sm:text-4xl">
+                      {hero.product.name}
+                    </h2>
+                    <p class="mt-1 line-clamp-1 text-sm text-white/80">{hero.product.description}</p>
+                  </div>
+                  <div class="shrink-0 text-right">
+                    {hero.promo.discountPct > 0 && (
+                      <span class="block text-sm text-white/60 line-through">
+                        {formatPrice(hero.product.price)}
+                      </span>
+                    )}
+                    <span class="font-display text-2xl text-white sm:text-3xl">
+                      {formatPrice(hero.promo.promoPrice)}
+                    </span>
+                  </div>
                 </div>
-                <div class="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-                   <span class="mb-4 rounded-full bg-brand-600 px-4 py-1 text-xs font-bold text-white uppercase">Explorar</span>
-                </div>
-                <p class="px-4 py-4 text-center font-display text-xl uppercase tracking-wide text-ink-800 group-hover:text-brand-600">
-                  {category.name}
-                </p>
-              </a>
-            ))}
-          </div>
-      </section>
-    )
-  }
+              </div>
+            </a>
+            <div class="absolute right-4 top-4 sm:right-6 sm:top-6">
+              <AddToCart product={heroCart} icon client:visible />
+            </div>
+          </section>
+        )
+      }
 
-  {
-    featured.length > 0 && (
-      <section class="wrap pb-16">
-        <div class="mb-5 flex items-baseline justify-between gap-4 border-b border-ink-800/10 pb-3">
-          <h2 class="section-title">Los más pedidos</h2>
-          <a href="/menu" class="text-sm font-semibold text-brand-600 transition hover:text-brand-700">
-            Ver todo →
-          </a>
-        </div>
-        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((product) => (
-            <ProductCard product={product} promos={promos} />
-          ))}
-        </div>
-      </section>
-    )
-  }
+      <div class="mb-6 flex snap-x gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {
+          FILTERS.map((f, i) => (
+            <button
+              type="button"
+              data-filter={f.id}
+              class:list={['chip snap-start', i === 0 ? 'chip-active' : '']}
+            >
+              {f.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    {
+      groups.length > 0 && (
+        <nav
+          class="sticky top-16 z-30 mb-8 border-b border-ink-800/10 bg-paper/95 backdrop-blur"
+          aria-label="Secciones de la carta"
+        >
+          <div class="wrap">
+            <div class="flex gap-6 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {groups.map((group, i) => (
+                <a
+                  href={`#${group.cat.slug}`}
+                  data-tab={group.cat.slug}
+                  class:list={[
+                    'whitespace-nowrap border-b-2 pb-1 text-sm font-bold uppercase tracking-wide transition',
+                    i === 0
+                      ? 'border-black text-black'
+                      : 'border-transparent text-ink-800/50 hover:text-ink-800',
+                  ]}
+                >
+                  {group.cat.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        </nav>
+      )
+    }
+
+    <div class="wrap flex flex-col gap-14">
+      {
+        groups.map((group) => (
+          <section id={group.cat.slug} data-section={group.cat.slug} class="scroll-mt-36">
+            <div class="mb-5 flex items-center gap-4">
+              <h2 class="font-display text-[24px] uppercase leading-none tracking-wide text-ink-900">
+                {group.cat.name}
+              </h2>
+              <div class="h-px flex-1 bg-ink-800/10" />
+              <span class="text-xs font-semibold uppercase tracking-widest text-ink-800/40">
+                {group.items.length} productos
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-4" data-track>
+              {group.items.map((product, index) => (
+                <ProductRow product={product} promos={promos} order={index} />
+              ))}
+            </div>
+          </section>
+        ))
+      }
+
+      <p id="menu-empty" class="py-12 text-center text-ink-800/60" hidden>
+        No hay productos para este filtro. Probá con otro.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Filtros + orden + tabs activas de la carta (sin dependencias).
+    const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+    const rows = Array.from(document.querySelectorAll<HTMLElement>('.menu-row'));
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-section]'));
+    const tabs = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-tab]'));
+    const empty = document.getElementById('menu-empty');
+
+    let mode = 'all';
+
+    const apply = () => {
+      rows.forEach((row) => {
+        const visible =
+          mode === 'all' ||
+          mode === 'price' ||
+          (mode === 'discount' && row.dataset.discount === '1') ||
+          (mode === 'featured' && row.dataset.featured === '1');
+        row.classList.toggle('hidden', !visible);
+      });
+
+      sections.forEach((section) => {
+        const visible = Array.from(section.querySelectorAll<HTMLElement>('.menu-row')).filter(
+          (row) => !row.classList.contains('hidden')
+        );
+        const ordered =
+          mode === 'price'
+            ? visible
+                .slice()
+                .sort((a, b) => Number(a.dataset.price) - Number(b.dataset.price))
+            : visible
+                .slice()
+                .sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
+        ordered.forEach((row, index) => {
+          row.style.order = String(index);
+        });
+
+        const hasProducts = visible.length > 0;
+        section.classList.toggle('hidden', !hasProducts);
+        const tab = tabs.find((t) => t.dataset.tab === section.dataset.section);
+        if (tab) tab.classList.toggle('hidden', !hasProducts);
+      });
+
+      const anyVisible = rows.some((row) => !row.classList.contains('hidden'));
+      if (empty) empty.hidden = anyVisible;
+    };
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        mode = button.dataset.filter ?? 'all';
+        filterButtons.forEach((other) => {
+          const active = other === button;
+          other.classList.toggle('chip-active', active);
+          other.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        apply();
+      });
+    });
+
+    // Tab de sección activa según scroll.
+    const visibleSections = new Set<string>();
+    const setActive = (slug?: string) => {
+      tabs.forEach((tab) => {
+        const active = !!slug && tab.dataset.tab === slug;
+        tab.classList.toggle('border-black', active);
+        tab.classList.toggle('text-black', active);
+        tab.classList.toggle('border-transparent', !active);
+        tab.classList.toggle('text-ink-800/50', !active);
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const slug = (entry.target as HTMLElement).dataset.section;
+          if (!slug) return;
+          if (entry.isIntersecting) visibleSections.add(slug);
+          else visibleSections.delete(slug);
+        });
+        const first = sections
+          .map((section) => section.dataset.section)
+          .find((slug) => slug && visibleSections.has(slug));
+        setActive(first);
+      },
+      { rootMargin: '-88px 0px -55% 0px' }
+    );
+    sections.forEach((section) => observer.observe(section));
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => setActive(tab.dataset.tab));
+    });
+
+    apply();
+    document.documentElement.dataset.menuReady = '1';
+  </script>
 </BaseLayout>
