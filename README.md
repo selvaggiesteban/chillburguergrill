@@ -12,102 +12,92 @@ Online ordering platform for **Chill Burguer Grill** (smash burgers, Lanús, Bue
 
 ## 1. Project Status
 
-Markers: `✓` completed · `✗` pending · `⚠` blocked.
-
 ### Completed
 
-- ✓ Production site live at `chillburgergrill.pages.dev` (Pages project recreated with the correct subdomain; the previous project is kept as a rollback)
-- ✓ Roboto typography applied and verified across all breakpoints
-- ✓ Admin panel rebrand: logo, black accents, zero emojis, product image upload to R2
-- ✓ MercadoPago live checkout: real credentials, hosted preference redirect, IPN webhook with signature validation
-- ✓ Turnstile bot protection infrastructure (widget, siteverify Worker, checkout and login gates) — temporarily disabled by the `TURNSTILE_ENABLED` switch
-- ✓ Product image data normalization (JSON array storage) and `object-fit: cover` / `object-position: center` on every image
-- ✓ Hero carousel removed from the home page
-- ✓ Sticky admin header with hamburger menu on mobile and spaced navigation on desktop
-- ✓ Admin credentials rotated (`admin@chillburgergrill.com`)
-- ✓ Edge caching with stale-on-error and per-deploy cache namespace
-- ✓ CI/CD via GitHub Actions (typecheck, build, Wrangler deploy) — green on every push to `main`
+- Production site live at `chillburgergrill.pages.dev` (Pages project recreated with the correct subdomain; the previous project is kept as a rollback).
+- Roboto typography applied and verified across all breakpoints.
+- Admin panel rebrand: logo, black accents, no emojis, product image upload to R2.
+- MercadoPago live checkout: real credentials, hosted preference redirect, IPN webhook with signature validation.
+- Turnstile bot-protection infrastructure (widget, siteverify Worker, checkout and login gates), temporarily disabled by the `TURNSTILE_ENABLED` switch.
+- Product image data normalization and `object-fit: cover` with `object-position: center` on every image.
+- Hero carousel removed from the home page.
+- Sticky admin header with hamburger menu on mobile and spaced navigation on desktop.
+- Admin credentials rotated (`admin@chillburgergrill.com`).
+- Edge caching with stale-on-error and a per-deploy cache namespace.
+- CI/CD via GitHub Actions (typecheck, build, Wrangler deploy), green on every push to `main`.
 
 ### Pending
 
-- ✗ Customer and staff email notifications (`EMAIL_API_TOKEN` not set on the Pages project)
-- ✗ Re-enabling Turnstile when traffic requires it (single boolean in `src/lib/turnstile.ts`)
-- ✗ Google Search Console, GA4 and Google Business Profile setup
-- ✗ Cleanup of test orders created during verification
+- Customer and staff email notifications (`EMAIL_API_TOKEN` not set on the Pages project).
+- Re-enabling Turnstile when traffic requires it (single boolean in `src/lib/turnstile.ts`).
+- Google Search Console, GA4 and Google Business Profile setup.
+- Cleanup of test orders created during verification.
 
 ### Blocked
 
-- ⚠ Transactional email sending: the Cloudflare Email Service domain onboarding must be completed in the Cloudflare dashboard (`Compute > Email Service > Onboard Domain`). The code is ready; the API returns error `10202` until the domain is verified
-- ⚠ Removal of the legacy Pages project `chillburgergrill-old` (still serving `chillburguergrill.pages.dev` as a rollback) — awaiting owner confirmation
-- ⚠ Custom apex domain (not purchased/configured; the site runs on `*.pages.dev`)
+- Transactional email sending: the Cloudflare Email Service domain onboarding must be completed in the Cloudflare dashboard (`Compute > Email > Onboard Domain`). The code is ready; the API returns error `10202` until the domain is verified.
+- Removal of the legacy Pages project `chillburgergrill-old` (still serving `chillburguergrill.pages.dev` as a rollback) — awaiting owner confirmation.
+- Custom apex domain: not purchased or configured; the site runs on `*.pages.dev`.
 
 ---
 
-## 2. Feature Matrix
+## 2. Feature Overview
 
-> The check/cross/warning markers are used only in the status lists and this section.
+### Platform and Infrastructure
 
-### Platform & Infrastructure
-
-- ✓ Hosting: Cloudflare Pages with edge SSR (Astro `output: server`)
-- ✓ Database: Cloudflare D1 (distributed SQLite)
-- ✓ Object storage: Cloudflare R2 (S3-compatible) for payment proofs and catalog images
-- ✓ Session storage: Cloudflare KV (`SESSION` binding, JWT cookie)
-- ✓ CI/CD: GitHub Actions → `npm ci` → typecheck → build → Wrangler → Pages
-- ✓ D1 quota watchdog workflow (`d1-quota-watch.yml`)
-- ✓ Framework: Astro v5 (server output)
-- ✓ UI: React 19 islands (only interactive parts hydrate)
-- ✓ Styling: Tailwind CSS, mobile-first responsive layout
-- ✓ Static sections: pure Astro components + vanilla JS, no client framework
+- Hosting on Cloudflare Pages with edge SSR (Astro `output: server`).
+- Database: Cloudflare D1 (distributed SQLite).
+- Object storage: Cloudflare R2 (S3-compatible) for payment proofs and catalog images.
+- Session storage: Cloudflare KV (`SESSION` binding, JWT cookie).
+- CI/CD: GitHub Actions runs `npm ci`, typecheck, build and Wrangler deploy.
+- D1 quota watchdog workflow (`d1-quota-watch.yml`).
+- Framework: Astro v5 (server output) with React 19 islands for interactive parts only.
+- Styling: Tailwind CSS, mobile-first responsive layout; static sections use pure Astro components and vanilla JS.
 
 ### Storefront
 
-- ✓ Digital menu on the home page `/`: filters (all / discount / best sellers / lowest price), sticky section tabs, product rows per section
-- ✓ Product detail at `/producto/[slug]`: modifier groups, required/optional selections, quantity, sticky purchase bar
-- ✓ Shopping cart: localStorage cart, re-validated server-side at checkout
-- ✓ Pricing engine: server-side calculation in `lib/checkout.ts` (the client is never trusted)
-- ✓ Promotions engine: product / category / store scope with percentage discount and date windows
-- ✓ Floating WhatsApp button with E.164-normalized `wa.me` link
-- ✓ Order status tracking page `/pedido/[id]` (public, no personal data exposed)
-- ✓ Notifications bell: order status and news notices with unread badge and 60 s polling
-- ✓ Footer removed from the layout (header-only chrome, per design review)
-- ✓ All catalog images use `object-fit: cover` with centered cropping
-- ✗ Product ratings / reviews: no rating data exists in the catalog
-- ✗ Automated unit/e2e test suite inside this repository (verification is performed by external browser scripts)
+- Digital menu on the home page `/` with filters (all / discount / best sellers / lowest price), sticky section tabs and product rows per section.
+- Product detail at `/producto/[slug]`: modifier groups, required and optional selections, quantity, sticky purchase bar.
+- Shopping cart persisted in localStorage and re-validated server-side at checkout.
+- Server-side pricing engine in `lib/checkout.ts`; the client is never trusted.
+- Promotions engine with product, category and store scope, percentage discounts and date windows.
+- Floating WhatsApp button with an E.164-normalized `wa.me` link.
+- Public order tracking page `/pedido/[id]` with no personal data in the payload.
+- Notifications bell for order status and news notices with unread badge and 60 s polling.
+- Footer removed from the layout (header-only chrome, per design review).
+- All catalog images use `object-fit: cover` with centered cropping.
 
-### Ordering & Payments
+### Ordering and Payments
 
-- ✓ Checkout `/pagar`: delivery or pickup, zone-based delivery cost, free-delivery threshold
-- ✓ Payment methods: MercadoPago, direct bank transfer, cash on delivery/pickup
-- ✓ 10% discount on the product subtotal for `transfer` and `cash`
-- ✓ MercadoPago preference creation with real credentials + `POST /api/webhooks/mercadopago` (HMAC signature validated)
-- ✓ Proof-of-payment upload to R2 and admin review at `/admin/pedidos/[id]`
-- ✗ Email receipts to the customer (blocked on email-domain onboarding, see status)
+- Checkout at `/pagar` with delivery or pickup, zone-based delivery cost and free-delivery threshold.
+- Payment methods: MercadoPago, direct bank transfer, cash on delivery or pickup.
+- Ten percent discount on the product subtotal for `transfer` and `cash`.
+- MercadoPago preference creation with real credentials and `POST /api/webhooks/mercadopago` with HMAC signature validation.
+- Proof-of-payment upload to R2 with admin review at `/admin/pedidos/[id]`.
 
 ### Admin Panel
 
-- ✓ Dashboard with daily stats (`/admin`)
-- ✓ Menu management: categories, products, images, combos, extras, ordering (`/admin/carta`)
-- ✓ Modifier groups: `group_id`, required flag, max selection
-- ✓ Orders board with status transitions and payment-proof viewer
-- ✓ Promotions CRUD with scope and date windows
-- ✓ Site config editor: contact data, opening hours, delivery zones, news notices (`/admin/config`)
-- ✓ Security: `middleware.ts` guards on `/admin*` and `/api/admin*`, JWT session, salted password hashing, CSRF origin check on mutations
-- ✓ Sticky header with hamburger navigation on mobile; logo-only login page
+- Dashboard with daily stats (`/admin`).
+- Menu management: categories, products, images, combos, extras and ordering (`/admin/carta`).
+- Modifier groups with `group_id`, required flag and max selection.
+- Orders board with status transitions and payment-proof viewer.
+- Promotions CRUD with scope and date windows.
+- Site config editor: contact data, opening hours, delivery zones and news notices (`/admin/config`).
+- Security: `middleware.ts` guards on `/admin*` and `/api/admin*`, JWT sessions, salted password hashing, CSRF origin check on mutations.
+- Sticky header with hamburger navigation on mobile and a logo-only login page.
 
-### SEO, Security & Delivery
+### SEO, Security and Delivery
 
-- ✓ JSON-LD `Restaurant` schema, Open Graph and Twitter meta tags
-- ✓ Dynamic `sitemap.xml` and `robots.txt` (admin, API, checkout and order pages disallowed)
-- ✓ Edge cache (Cache API) with `X-Cache: HIT | MISS | STALE` headers and per-deploy build namespace
-- ✓ Never cached: `/admin*`, `/pagar*`, `/pedido*`, responses with `Set-Cookie`, non-GET methods
-- ✓ Input validation on every admin/checkout endpoint (parameterized SQL only)
-- ✓ Turnstile bot protection code (checkout + admin login), master-switched off in production
-- ✗ Custom apex domain: the site is served from `chillburgergrill.pages.dev`
+- JSON-LD `Restaurant` schema plus Open Graph and Twitter meta tags.
+- Dynamic `sitemap.xml` and `robots.txt` (admin, API, checkout and order pages disallowed).
+- Edge cache (Cache API) with `X-Cache: HIT | MISS | STALE` headers and a per-deploy build namespace.
+- Never cached: `/admin*`, `/pagar*`, `/pedido*`, responses with `Set-Cookie` and non-GET methods.
+- Input validation on every admin and checkout endpoint; parameterized SQL only.
+- Turnstile bot-protection code for checkout and admin login, master-switched off in production.
 
 ---
 
-## 3. Navigation & Routing (routes + HTTP methods)
+## 3. Navigation and Routing
 
 ### Public pages
 
@@ -115,13 +105,13 @@ Markers: `✓` completed · `✗` pending · `⚠` blocked.
 |---|---|---|---|
 | `/` | GET | Public | Home and full digital menu: filters, sticky tabs, featured card |
 | `/producto/<slug>` | GET | Public | Product detail with modifier groups and purchase bar |
-| `/pagar` | GET | Public | Checkout (delivery/pickup, payment method, order notes); `noindex` |
-| `/pedido/<uuid>` | GET | Public | Order status page (no personal data in the payload) |
-| `/contacto` | GET | Public | Contact, address, map, opening hours |
-| `/menu` | GET | Public | 302 redirect → `/` (legacy URL) |
-| `/menu/<slug>` | GET | Public | 308 redirect → `/producto/<slug>` (legacy URLs keep working) |
-| `/product/<slug>` | GET | Public | 308 redirect → `/producto/<slug>` (legacy English path) |
-| `/checkout` | GET | Public | 302 redirect → `/pagar` (legacy URL) |
+| `/pagar` | GET | Public | Checkout (delivery or pickup, payment method, notes); `noindex` |
+| `/pedido/<uuid>` | GET | Public | Order status page with no personal data |
+| `/contacto` | GET | Public | Contact, address, map and opening hours |
+| `/menu` | GET | Public | 302 redirect to `/` (legacy URL) |
+| `/menu/<slug>` | GET | Public | 308 redirect to `/producto/<slug>` (legacy URLs keep working) |
+| `/product/<slug>` | GET | Public | 308 redirect to `/producto/<slug>` (legacy English path) |
+| `/checkout` | GET | Public | 302 redirect to `/pagar` (legacy URL) |
 | `/404` | GET | Public | Not found |
 | `/sitemap.xml`, `/robots.txt` | GET | Public | SEO files |
 
@@ -139,7 +129,7 @@ Markers: `✓` completed · `✗` pending · `⚠` blocked.
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/auth/login` | POST | Admin login (sets `session_token`, `Secure` + `HttpOnly`) |
+| `/api/auth/login` | POST | Admin login; sets `session_token` with `Secure` and `HttpOnly` |
 | `/api/auth/logout` | POST | Clears the session cookie |
 | `/api/auth/check` | GET | Returns the current session state |
 
@@ -147,9 +137,9 @@ Markers: `✓` completed · `✗` pending · `⚠` blocked.
 
 `/admin`, `/admin/login`, `/admin/carta`, `/admin/pedidos`, `/admin/pedidos/[id]`, `/admin/config`
 
-### Admin APIs (session required; `PUT`/`POST`/`DELETE` only for mutations)
+### Admin APIs (session required; `PUT`, `POST` and `DELETE` only for mutations)
 
-`/api/admin/stats`, `/api/admin/config`, `/api/admin/categories[/<id>]`, `/api/admin/products[/<id>]`, `/api/admin/products/<id>/combo`, `/api/admin/extras[/<id>]`, `/api/admin/promotions[/<id>]`, `/api/admin/orders[<id>]`, `/api/admin/orders/<id>/proof`, `/api/admin/images`
+`/api/admin/stats`, `/api/admin/config`, `/api/admin/categories[/<id>]`, `/api/admin/products[/<id>]`, `/api/admin/products/<id>/combo`, `/api/admin/extras[/<id>]`, `/api/admin/promotions[/<id>]`, `/api/admin/orders[/<id>]`, `/api/admin/orders/<id>/proof`, `/api/admin/images`
 
 ---
 
@@ -194,7 +184,7 @@ Markers: `✓` completed · `✗` pending · `⚠` blocked.
 
 ## 5. Migrations (D1)
 
-Database id: `f7e04d5c-8119-4dd6-9bc0-0fa9b9b6eff1` (name `chill-menu`), applied on **local** and **remote** environments.
+Database id: `f7e04d5c-8119-4dd6-9bc0-0fa9b9b6eff1` (name `chill-menu`), applied on local and remote environments.
 
 | File | Contents |
 |---|---|
@@ -202,7 +192,7 @@ Database id: `f7e04d5c-8119-4dd6-9bc0-0fa9b9b6eff1` (name `chill-menu`), applied
 | `002_indexes.sql` | Lookup indexes (slug, category, visible/orden, order status) |
 | `003_seed_demo.sql` | Demo rows |
 | `004_analyze.sql` | `EXPLAIN QUERY PLAN` checks for the hot queries |
-| `005_real_menu.sql` | Real Chill Burguer Grill catalog (categories + products + extras) |
+| `005_real_menu.sql` | Real Chill Burguer Grill catalog (categories, products and extras) |
 | `006_extras_groups.sql` | `extras.group_id`, `extras.is_required`, `extras.max_selection` (modifier groups) |
 
 Apply them with:
@@ -216,30 +206,30 @@ node scripts/migrate.mjs --remote   # production D1
 
 ---
 
-## 6. Protocols & Connectivity
+## 6. Protocols and Connectivity
 
 | Resource | Protocol | Binding | Access from code |
 |---|---|---|---|
-| D1 database | SQL (driver over the Workers binding) | `DB` | `Astro.locals.runtime.env.DB` → all queries go through `src/lib/d1.ts` |
+| D1 database | SQL over the Workers binding | `DB` | `Astro.locals.runtime.env.DB`; all queries go through `src/lib/d1.ts` |
 | R2 bucket (`chillburguergrill-images`) | S3-compatible API | `IMAGES` | Payment proofs and catalog images served through `/media/*` and admin APIs |
-| KV namespace (`SESSION`) | Workers KV API | `SESSION` | JWT session + Astro sessions |
-| MercadoPago | HTTPS REST + webhook | env secret `MP_ACCESS_TOKEN` | `src/lib/mp.ts`, `src/pages/api/webhooks/mercadopago.ts` |
-| Turnstile siteverify Worker | HTTPS JSON proxy | — | `src/lib/turnstile.ts` (sitekey + Worker URL; master switch `TURNSTILE_ENABLED`) |
+| KV namespace (`SESSION`) | Workers KV API | `SESSION` | JWT session and Astro sessions |
+| MercadoPago | HTTPS REST and webhook | env secret `MP_ACCESS_TOKEN` | `src/lib/mp.ts`, `src/pages/api/webhooks/mercadopago.ts` |
+| Turnstile siteverify Worker | HTTPS JSON proxy | — | `src/lib/turnstile.ts` (sitekey and Worker URL; master switch `TURNSTILE_ENABLED`) |
 
-- **Topology:** Cloudflare Edge (Pages Worker) → D1 / R2 / KV through internal bindings (no public network hop).
-- **Public traffic:** HTTPS only; the admin session cookie is `Secure`, `HttpOnly`, `SameSite=Lax`.
-- **WhatsApp / Instagram / Google Maps:** external HTTPS links (`wa.me`, `instagram.com`, `maps.app.goo.gl`).
+- **Topology:** Cloudflare Edge (Pages Worker) reaches D1, R2 and KV through internal bindings with no public network hop.
+- **Public traffic:** HTTPS only; the admin session cookie is `Secure`, `HttpOnly` and `SameSite=Lax`.
+- **External links:** WhatsApp, Instagram and Google Maps use HTTPS (`wa.me`, `instagram.com`, `maps.app.goo.gl`).
 
 ---
 
 ## 7. Requirements
 
-- **Node.js** 24 (CI) — 22 LTS also works locally.
+- **Node.js** 24 in CI; Node 22 LTS also works locally.
 - **npm** 10+ with the committed `frontend/package-lock.json` (`npm ci`).
 - **Wrangler** 4.x (installed as a devDependency).
-- **Cloudflare account** with Pages project `chillburgergrill`, D1 `chill-menu`, KV `SESSION`, R2 `chillburguergrill-images`, and the Turnstile siteverify Worker.
-- **GitHub repository** (`selvaggiesteban/chillburgergrill`) with the `CLOUDFLARE_API_TOKEN` secret (Pages Edit + Account Analytics Read + Account Settings Read).
-- **Pages project secrets:** `JWT_SECRET`, `MP_ACCESS_TOKEN` (set), `EMAIL_API_TOKEN` (pending — required for order emails).
+- **Cloudflare account** with Pages project `chillburgergrill`, D1 `chill-menu`, KV `SESSION`, R2 `chillburguergrill-images` and the Turnstile siteverify Worker.
+- **GitHub repository** (`selvaggiesteban/chillburgergrill`) with the `CLOUDFLARE_API_TOKEN` secret (Pages Edit, Account Analytics Read, Account Settings Read).
+- **Pages project secrets:** `JWT_SECRET` and `MP_ACCESS_TOKEN` are set; `EMAIL_API_TOKEN` is pending and required for order emails.
 
 ### Local development
 
@@ -257,26 +247,25 @@ Local admin: `admin@chill.local` / `chill-dev-2026`.
 
 ---
 
-## 8. SEO & Web Standards
+## 8. SEO and Web Standards
 
-- **Canonical URL:** `https://chillburgergrill.pages.dev/` (set in `astro.config.mjs` → `site`, used for canonical, Open Graph and JSON-LD).
-- **Sitemap:** generated by `src/pages/sitemap.xml.ts` from the visible products (home, contact, one entry per product).
-- **robots.txt:** allows public browsing; disallows `/admin`, `/api`, `/pagar`, `/pedido`.
-
-- **Meta tags:** title + description per page, `og:site_name` (Chill Burguer Grill), `og:type` (website), `og:locale` (es_AR), `og:image` (`/images/og.png`, 1200x630), `twitter:card`.
-- **Structured data:** JSON-LD `Restaurant` with `name`, `telephone` (`+5491171548466`), `address` (Chaco 1512, B1824 Lanús), `servesCuisine`, `openingHoursSpecification`, `url`, `image`.
-- **HTML:** semantic landmarks (`header`, `main`, `nav`, `section`, `article`), alt text on every catalog image, `aria-*` on sliders, filters and tabs.
+- **Canonical URL:** `https://chillburgergrill.pages.dev/` (set in `astro.config.mjs` as `site`; used for canonical, Open Graph and JSON-LD).
+- **Sitemap:** generated by `src/pages/sitemap.xml.ts` from the visible products (home, contact and one entry per product).
+- **robots.txt:** allows public browsing and disallows `/admin`, `/api`, `/pagar` and `/pedido`.
+- **Meta tags:** title and description per page, `og:site_name` (Chill Burguer Grill), `og:type` (website), `og:locale` (es_AR), `og:image` (`/images/og.png`, 1200x630) and `twitter:card`.
+- **Structured data:** JSON-LD `Restaurant` with `name`, `telephone` (`+5491171548466`), `address` (Chaco 1512, B1824 Lanús), `servesCuisine`, `openingHoursSpecification`, `url` and `image`.
+- **HTML:** semantic landmarks (`header`, `main`, `nav`, `section`, `article`), alt text on every catalog image and `aria-*` attributes on sliders, filters and tabs.
 
 ---
 
-## 9. Admin & Deployment
+## 9. Admin and Deployment
 
 ### Admin
 
 - Panel URL: `/admin` — JWT session in the `session_token` cookie, guarded by `middleware.ts` for both pages (`/admin*`) and APIs (`/api/admin*`).
 - Mutations require a matching `Origin` header (CSRF protection) and pass through `withValidation()` field validators.
-- Config keys editable from `/admin/config`: `contact`, `hours`, `delivery`, `bank`, `notices`.
-- Layout: sticky header (`top-0`) with a hamburger menu on mobile; inline navigation from `md` upward. The login page shows only the centered logo.
+- Config keys editable from `/admin/config`: `contact`, `hours`, `delivery`, `bank` and `notices`.
+- Layout: sticky header (`top-0`) with a hamburger menu on mobile and inline navigation from the `md` breakpoint upward. The login page shows only the centered logo.
 
 ### CI/CD (`.github/workflows/deploy.yml`)
 
@@ -290,10 +279,10 @@ checkout → setup-node 24 (npm cache on frontend/package-lock.json)
 
 - Triggers: push to `main` and `workflow_dispatch`.
 - The deploy step uses the repository secret `CLOUDFLARE_API_TOKEN`.
-- Deploys are executed by GitHub Actions via Wrangler. The Pages project is **not** connected to GitHub through the Pages Git integration (`pages_build_output_dir` in `wrangler.jsonc` is inert in this setup).
+- Deploys are executed by GitHub Actions through Wrangler. The Pages project is not connected to GitHub through the Pages Git integration; `pages_build_output_dir` in `wrangler.jsonc` is inert in this setup.
 - `.github/workflows/d1-quota-watch.yml` reports D1 row-read usage so the free-tier quota is not silently exhausted.
 
-### Deployment optimization (edge caching)
+### Edge caching
 
 `src/middleware.ts` serves public pages from the Cloudflare Cache API:
 
@@ -307,9 +296,9 @@ checkout → setup-node 24 (npm cache on frontend/package-lock.json)
 | `/api/pedido/<uuid>` | 30 s |
 
 - Responses carry `X-Cache: HIT | MISS | STALE`.
-- **Stale-on-error:** if D1 fails (e.g. quota exhausted) the stale copy is served instead of a 503.
-- **Never cached:** `/admin*`, `/pagar*`, `/pedido*`, non-GET methods, and any response with `Set-Cookie`.
-- **Cache namespace per deploy:** `vite.define.__BUILD_ID__` injects `CF_PAGES_COMMIT_SHA`/`GITHUB_SHA` into the cache key, so every deploy starts with a cold cache (no stale HTML after a release).
+- **Stale-on-error:** if D1 fails (for example when the quota is exhausted) the stale copy is served instead of a 503.
+- **Never cached:** `/admin*`, `/pagar*`, `/pedido*`, non-GET methods and any response with `Set-Cookie`.
+- **Cache namespace per deploy:** `vite.define.__BUILD_ID__` injects `CF_PAGES_COMMIT_SHA` or `GITHUB_SHA` into the cache key, so every deploy starts with a cold cache.
 
 ### Manual deploy (fallback)
 
@@ -323,17 +312,17 @@ npx wrangler pages deploy dist --project-name=chillburgergrill --branch=main --c
 
 | Flag | File | Current value | Effect |
 |---|---|---|---|
-| `TURNSTILE_ENABLED` | `src/lib/turnstile.ts` | `false` | Renders the Turnstile widget and enforces verification on checkout and admin login when `true` |
+| `TURNSTILE_ENABLED` | `src/lib/turnstile.ts` | `false` | Renders the Turnstile widget and enforces verification on checkout and admin login when set to `true` |
 
 ---
 
-## 10. Development & Versioning
+## 10. Development and Versioning
 
-- **Version:** 1.0.0 (`frontend/package.json`)
-- **Languages:** TypeScript 5.x, Astro (server-rendered HTML), React 19 (TSX), Tailwind CSS, SQL (D1 migrations), a little vanilla JS
-- **Runtime:** Cloudflare Workers (via `@astrojs/cloudflare`)
-- **Version control:** Git, `main` branch, GitHub (`selvaggiesteban/chillburgergrill`)
-- **Author:** Esteban Selvaggi
+- **Version:** 1.0.0 (`frontend/package.json`).
+- **Languages:** TypeScript 5.x, Astro (server-rendered HTML), React 19 (TSX), Tailwind CSS, SQL (D1 migrations) and a small amount of vanilla JS.
+- **Runtime:** Cloudflare Workers through `@astrojs/cloudflare`.
+- **Version control:** Git, `main` branch, GitHub (`selvaggiesteban/chillburgergrill`).
+- **Author:** Esteban Selvaggi.
 
 ---
 
