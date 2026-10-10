@@ -4,7 +4,7 @@ import { whatsappE164, loadPublicConfig } from '../lib/public-config';
 const { contact } = await loadPublicConfig(Astro.locals);
 const e164 = whatsappE164(contact?.whatsapp);
 
-const message = encodeURIComponent('Hola Chill Burguer Grill, me gustaría hacer un pedido');
+const message = encodeURIComponent('Hola Chill Burger Grill, me gustaría hacer un pedido');
 const whatsappUrl = e164 ? `https://wa.me/${e164.slice(1)}?text=${message}` : null;
 
 // En páginas con barra fija inferior (producto, checkout, pedido) el botón

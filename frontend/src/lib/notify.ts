@@ -40,7 +40,7 @@ export type NotifyEnv = {
   EMAIL_API_TOKEN?: string | undefined;
 };
 
-const FROM = { email: 'pedidos@chillburguergrill.com', name: 'Chill Burguer Grill' };
+const FROM = { email: 'pedidos@chillburguergrill.com', name: 'Chill Burger Grill' };
 const CF_ACCOUNT_ID = '793d012a405417ee4382f1ef1869753e';
 
 const PAYMENT_LABELS: Record<OrderForEmail['payment_method'], string> = {
@@ -180,7 +180,7 @@ function orderHtml(order: OrderForEmail, items: OrderItemInput[], link: { href: 
   return `
 <body style="margin:0;padding:24px;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b;">
   <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;">
-    <h1 style="font-size:20px;margin:0 0 4px;">Chill Burguer Grill</h1>
+    <h1 style="font-size:20px;margin:0 0 4px;">Chill Burger Grill</h1>
     <p style="margin:0 0 16px;color:#52525b;">Pedido <strong>${shortRef(order.id)}</strong></p>
     <p style="margin:0 0 4px;"><strong>Cliente:</strong> ${escapeHtml(order.customer_name)} — ${escapeHtml(order.customer_phone)}</p>
     <p style="margin:0 0 4px;"><strong>Entrega:</strong> ${entrega}</p>
@@ -230,7 +230,7 @@ export async function notifyOrderCreated(
 
   const customerEmail = (order.customer_email ?? '').trim();
   if (looksLikeEmail(customerEmail)) {
-    const subject = `Recibimos tu pedido ${ref} — Chill Burguer Grill`;
+    const subject = `Recibimos tu pedido ${ref} — Chill Burger Grill`;
     const html = orderHtml(order, items, {
       href: `${SITE}/pedido/${order.id}`,
       label: 'Ver tu pedido',

@@ -22,7 +22,7 @@ const [extras, promos, adicional, popular] = await Promise.all([
 const promo = bestPromoFor(promos, product.id, product.category_id, product.price);
 
 const cover = coverOf(parseImages(product.images), product.cover_index);
-const seoTitle = `${product.name} | Chill Burguer Grill`;
+const seoTitle = `${product.name} | Chill Burger Grill`;
 const seoDescription = product.description?.trim() || undefined;
 ---
 

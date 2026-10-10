@@ -83,7 +83,7 @@ function unavailableResponse(pathname: string): Response {
     });
   }
   const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta http-equiv="refresh" content="30">
-<title>Chill Burguer Grill</title><style>body{font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#fff7ed;color:#1c1917}
+<title>Chill Burger Grill</title><style>body{font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#fff7ed;color:#1c1917}
 .box{text-align:center;max-width:28rem;padding:2rem}h1{color:#ea580c}</style></head>
 <body><div class="box"><h1>Estamos recargando la carta</h1><p>Un momento, volvemos en segundos.</p></div></body></html>`;
   return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Retry-After': '30' } });

@@ -14,7 +14,7 @@ interface Props {
 }
 
 const {
-  title = 'Chill Burguer Grill — Hamburguesas smash a la parrilla',
+  title = 'Chill Burger Grill — Hamburguesas smash a la parrilla',
   description = 'Hamburguesas smash, guarniciones y bebidas. Pedí online con delivery en Lanús y alrededores o retiro en local: MercadoPago, transferencia o efectivo.',
   image,
   imageAlt,
@@ -27,7 +27,7 @@ const canonical = new URL(Astro.url.pathname, site).toString();
 const defaultOgImage = new URL('/images/og.png', site).toString();
 const imageIsRaster = !!image && !/\.svg$/i.test(image ?? '');
 const ogImage = imageIsRaster ? new URL(image!, site).toString() : defaultOgImage;
-const ogImageAlt = imageAlt ?? (product ? `${product.name} — Chill Burguer Grill` : 'Chill Burguer Grill');
+const ogImageAlt = imageAlt ?? (product ? `${product.name} — Chill Burger Grill` : 'Chill Burger Grill');
 
 // 1 sola query D1 por request, compartida con Footer/página (ver lib/public-config).
 const { contact, hours } = await loadPublicConfig(Astro.locals);
@@ -38,7 +38,7 @@ const telephone = whatsappE164(contact?.whatsapp) ?? contact?.phone;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Restaurant',
-  name: 'Chill Burguer Grill',
+  name: 'Chill Burger Grill',
   url: site.toString(),
   image: defaultOgImage,
   description,
@@ -62,7 +62,7 @@ const productLd = product
       ...(product.description ? { description: product.description } : {}),
       image: ogImage,
       sku: product.slug,
-      brand: { '@type': 'Brand', name: 'Chill Burguer Grill' },
+      brand: { '@type': 'Brand', name: 'Chill Burger Grill' },
       offers: {
         '@type': 'Offer',
         priceCurrency: 'ARS',
@@ -95,7 +95,7 @@ const productLd = product
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap"
     />
 
-    <meta property="og:site_name" content="Chill Burguer Grill" />
+    <meta property="og:site_name" content="Chill Burger Grill" />
     <meta property="og:locale" content="es_AR" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />

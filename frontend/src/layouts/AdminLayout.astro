@@ -5,7 +5,7 @@ interface Props {
   title?: string;
 }
 
-const { title = 'Panel — Chill Burguer Grill' } = Astro.props;
+const { title = 'Panel — Chill Burger Grill' } = Astro.props;
 const pathname = Astro.url.pathname;
 
 const links = [
@@ -42,7 +42,7 @@ const isActive = (href: string, exact: boolean) =>
       >
         <div class="flex items-center justify-between">
           <a href="/admin" aria-label="Ir al panel">
-            <img src="/images/logo.webp" alt="Chill Burguer Grill" class="h-12 w-auto" />
+            <img src="/images/logo.webp" alt="Chill Burger Grill" class="h-12 w-auto" />
           </a>
           <button
             type="button"
